@@ -1,10 +1,15 @@
 package dev.ujhhgtg.wekit.utils.collections
 
+import androidx.annotation.Keep
 import java.io.Serializable
 
+/**
+ * Returns an empty read-only hash set.  The returned list is serializable (JVM).
+ */
 @Suppress("UNCHECKED_CAST")
 fun <T> emptyHashSet(): HashSet<T> = EmptyHashSet as HashSet<T>
 
+@Keep
 private object EmptyHashSet : HashSet<Nothing>(), Serializable {
     @Suppress("unused")
     private const val serialVersionUID: Long = 3406603774120516569L
@@ -30,6 +35,7 @@ private object EmptyHashSet : HashSet<Nothing>(), Serializable {
     private fun readResolve(): Any = EmptyHashSet
 }
 
+@Keep
 private object EmptyMutableIterator : MutableIterator<Nothing> {
     override fun hasNext(): Boolean = false
     override fun next(): Nothing = throw NoSuchElementException()

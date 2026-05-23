@@ -14,6 +14,7 @@ import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.wekit.utils.reflection.asMethod
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
 import dev.ujhhgtg.wekit.utils.serialization.XmlUtils.extractXmlAttr
@@ -58,7 +59,6 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
     private val classMvvmBase by dexClass()
     private val classImageSender by dexClass()      // 发送逻辑核心
     private val classImageTask by dexClass()        // 任务数据模型
-    private val methodImageSendEntry by dexMethod() // 静态入口方法
     private val classServiceManager by dexClass()   // ServiceManager
     private val classConfigLogic by dexClass()      // ConfigStorageLogic
     private val classImageServiceImpl by dexClass()
@@ -277,17 +277,24 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
             }
         }
 
-        methodImageSendEntry.find(dexKit) {
+        val methodImageSendEntry = dexKit.findMethod {
             matcher {
                 declaredClass(classImageSender.clazz)
                 modifiers = Modifier.PUBLIC or Modifier.STATIC or Modifier.FINAL
-                paramCount = 4
-                paramTypes(classImageSender.clazz, null, null, null)
+                paramCount(4, 5)
+                usingEqStrings("send_mid_size", "send_hevc_mid_size")
             }
-        }
+        }.single().asMethod
 
-        val taskClassName = methodImageSendEntry.method.parameterTypes[1]
+        val taskClassName = methodImageSendEntry.parameterTypes[1]
         classImageTask.setDescriptor(taskClassName.name)
+
+        // this also seems applicable
+//        classImageTask.find(dexKit) {
+//            matcher {
+//                usingEqStrings("imgPath", "fromUsername", "toUsername", "crossParams", "msg_raw_img_send")
+//            }
+//        }
 
         classImageServiceImpl.find(dexKit, allowFailure = true) {
             matcher {

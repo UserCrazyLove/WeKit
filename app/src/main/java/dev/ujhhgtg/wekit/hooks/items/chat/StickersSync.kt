@@ -22,7 +22,6 @@ import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
-import dev.ujhhgtg.wekit.dexkit.toClass
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.hooks.api.core.WeServiceApi
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
@@ -37,6 +36,7 @@ import dev.ujhhgtg.wekit.utils.enumValueOfClass
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
 import dev.ujhhgtg.wekit.utils.fs.createDirectoriesNoThrow
 import dev.ujhhgtg.wekit.utils.polyfills.intoList
+import dev.ujhhgtg.wekit.utils.reflection.asClass
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -384,7 +384,7 @@ object StickersSync : ClickableHookItem(), IResolvesDex {
                             }[0]
                         }
                     }
-                }.toClass()
+                }.asClass
             }
             result = retType.createInstance(
                 bytes, "image/png",
