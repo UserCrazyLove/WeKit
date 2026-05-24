@@ -20,7 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -54,11 +54,11 @@ import com.composables.icons.materialsymbols.outlined.Update
 import com.composables.icons.materialsymbols.outlined.Upload
 import com.composables.icons.materialsymbols.outlined.Volunteer_activism
 import com.composables.icons.materialsymbols.outlined.Wand_stars
+import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.entity.Library
-import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import com.tencent.mm.ui.LauncherUI
 import dev.ujhhgtg.wekit.BuildConfig
-import dev.ujhhgtg.wekit.R
+import dev.ujhhgtg.wekit.aboutlibraries.AboutLibrariesProvider
 import dev.ujhhgtg.wekit.activity.StubFragmentActivity
 import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.constants.PreferenceKeys
@@ -399,8 +399,10 @@ class MainSettingsDialog(context: Context) : BasePrefsDialog(context, BuildConfi
                         shape = MaterialTheme.shapes.extraLarge,
                         tonalElevation = 6.dp
                     ) {
-                        val libraries by produceLibraries(R.raw.aboutlibraries)
-                        val libraryList = libraries?.libraries ?: emptyList()
+                        val libraries = remember {
+                            Libs.Builder().withJson(AboutLibrariesProvider.ABOUT_LIBRARIES_JSON).build()
+                        }
+                        val libraryList = libraries.libraries
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(16.dp),

@@ -128,6 +128,7 @@ android {
     }
 
     buildFeatures {
+        resValues = false
         compose = true
         buildConfig = true
     }
@@ -148,6 +149,26 @@ androidComponents {
         kotlinSources.addGeneratedSourceDirectory(
             generateMethodHashes,
             GenerateMethodHashesTask::outputDir
+        )
+
+        val variantName = variant.name.replaceFirstChar { it.uppercase() }
+        val embedAboutLibraries = tasks.register<EmbedAboutLibrariesTask>("embedAboutLibraries$variantName") {
+            group = "wekit"
+            description = "Embed aboutlibraries.json as a String constant for $variantName"
+
+            val aboutLibrariesJson = layout.buildDirectory.file("generated/aboutLibraries/${variant.name}/res/raw/aboutlibraries.json")
+            inputFile.set(aboutLibrariesJson)
+            outputDir.set(layout.buildDirectory.dir("generated/source/aboutlibraries/${variant.name}"))
+            namespace.set(libs.versions.namespace.get())
+        }
+
+        embedAboutLibraries.configure {
+            dependsOn(tasks.named("prepareLibraryDefinitions$variantName"))
+        }
+
+        kotlinSources.addGeneratedSourceDirectory(
+            embedAboutLibraries,
+            EmbedAboutLibrariesTask::outputDir
         )
     }
 }
