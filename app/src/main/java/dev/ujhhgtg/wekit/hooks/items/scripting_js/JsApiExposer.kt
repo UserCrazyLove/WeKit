@@ -31,6 +31,9 @@ import org.mozilla.javascript.NativeObject
 import org.mozilla.javascript.Scriptable
 import org.mozilla.javascript.ScriptableObject
 import org.mozilla.javascript.Undefined
+import java.lang.reflect.Field
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -50,6 +53,7 @@ object JsApiExposer {
     private const val TAG_LOG_API = "JsApiExposer.LogApi"
     private const val TAG_HTTP_API = "JsApiExposer.HttpApi"
     private const val TAG_XPOSED_API = "JsApiExposer.XposedApi"
+    private const val TAG_REFLECT_API = "JsApiExposer.ReflectApi"
 
     private val httpClient by lazy {
         OkHttpClient.Builder()
@@ -65,6 +69,7 @@ object JsApiExposer {
         exposeStorageApis(scope)
         exposeDateTimeApis(scope)
         exposeXposedApis(scope)
+        exposeReflectApis(scope)
         exposeTaskApis(scope)
         exposeWeChatApis(scope, talker)
     }
@@ -134,7 +139,7 @@ object JsApiExposer {
             }
         )
 
-        // http.download(url, filename?) -> { ok: Boolean, path: String }
+        // http.download(url, filename?) -> path: String?
         ScriptableObject.putProperty(
             httpObj, "download",
             object : BaseFunction() {
@@ -169,25 +174,16 @@ object JsApiExposer {
 
                         val destFile = cacheDir.resolve(filename)
 
-                        val success = performDownload(url, destFile)
-
-                        createDownloadResponse(success, destFile.absolutePathString())
+                        if (performDownload(url, destFile)) destFile.absolutePathString() else null
                     } catch (e: Exception) {
                         WeLogger.e(TAG_HTTP_API, "http.download failed: $url", e)
-                        createDownloadResponse(false, "")
+                        null
                     }
                 }
             }
         )
 
         ScriptableObject.putProperty(scope, "http", httpObj)
-    }
-
-    private fun createDownloadResponse(ok: Boolean, path: String): NativeObject {
-        val res = NativeObject()
-        ScriptableObject.putProperty(res, "ok", ok)
-        ScriptableObject.putProperty(res, "path", path)
-        return res
     }
 
     private fun performDownload(url: String, destFile: Path): Boolean {
@@ -631,24 +627,6 @@ object JsApiExposer {
                     args: Array<Any?>
                 ): Any? {
                     val key = args.getOrNull(0)?.toString() ?: return Undefined.instance
-                    storage.remove(key)
-                    saveStorageToDisk()
-                    return Undefined.instance
-                }
-            }
-        )
-
-        // storage.pop(key) -> object
-        ScriptableObject.putProperty(
-            storageObj, "pop",
-            object : BaseFunction() {
-                override fun call(
-                    cx: Context,
-                    scope: Scriptable,
-                    thisObj: Scriptable,
-                    args: Array<Any?>
-                ): Any? {
-                    val key = args.getOrNull(0)?.toString() ?: return Undefined.instance
                     return (storage.remove(key)
                         ?: Undefined.instance).also { saveStorageToDisk() }
                 }
@@ -952,7 +930,43 @@ object JsApiExposer {
                     thisObj: Scriptable,
                     args: Array<Any?>
                 ): Any {
-                    val className = args.getOrNull(0)?.toString() ?: return Undefined.instance
+                    // Support two overloads:
+                    //   hookBefore(javaMethod: JavaMethod, hookFunc: Function)
+                    //   hookBefore(className: string, methodName: string, hookFunc: Function)
+                    val first = args.getOrNull(0)
+                    if (first is NativeObject) {
+                        val methodProp = try {
+                            Context.jsToJava(
+                                ScriptableObject.getProperty(first, "__method"),
+                                Method::class.java
+                            ) as? Method
+                        } catch (_: Exception) {
+                            null
+                        }
+                        if (methodProp != null) {
+                            // JavaMethod overload
+                            val hookFunc = args.getOrNull(1) as? org.mozilla.javascript.Function
+                                ?: return Undefined.instance
+                            try {
+                                methodProp.isAccessible = true
+                                methodProp.hookBeforeDirectly {
+                                    val jsThis = thisObject?.let { Context.javaToJS(it, scope, cx) }
+                                    val jsArgs = args.let { Context.javaToJS(it, scope, cx) }
+                                        ?: Undefined.instance
+                                    val hookResult = hookFunc.call(cx, scope, thisObj, arrayOf(jsThis, jsArgs))
+                                    if (hookResult != null && hookResult !is Undefined) {
+                                        result = hookResult
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                WeLogger.e(TAG_XPOSED_API, "xposed.hookBefore (JavaMethod) failed", e)
+                            }
+                            return Undefined.instance
+                        }
+                    }
+
+                    // Original (className, methodName, hookFunc) overload
+                    val className = first?.toString() ?: return Undefined.instance
                     val methodName = args.getOrNull(1)?.toString() ?: return Undefined.instance
                     val hookFunc = args.getOrNull(2) as? org.mozilla.javascript.Function ?: return Undefined.instance
 
@@ -989,7 +1003,45 @@ object JsApiExposer {
                     thisObj: Scriptable,
                     args: Array<Any?>
                 ): Any {
-                    val className = args.getOrNull(0)?.toString() ?: return Undefined.instance
+                    // Support two overloads:
+                    //   hookBefore(javaMethod: JavaMethod, hookFunc: Function)
+                    //   hookBefore(className: string, methodName: string, hookFunc: Function)
+                    val first = args.getOrNull(0)
+                    if (first is NativeObject) {
+                        val methodProp = try {
+                            Context.jsToJava(
+                                ScriptableObject.getProperty(first, "__method"),
+                                Method::class.java
+                            ) as? Method
+                        } catch (_: Exception) {
+                            null
+                        }
+                        if (methodProp != null) {
+                            // JavaMethod overload
+                            val hookFunc = args.getOrNull(1) as? org.mozilla.javascript.Function
+                                ?: return Undefined.instance
+                            try {
+                                methodProp.isAccessible = true
+                                methodProp.hookAfterDirectly {
+                                    val jsThis = thisObject?.let { Context.javaToJS(it, scope, cx) }
+                                    val jsArgs = args.let { Context.javaToJS(it, scope, cx) }
+                                        ?: Undefined.instance
+                                    val jsResult = result?.let { Context.javaToJS(it, scope, cx) }
+                                        ?: Undefined.instance
+                                    val hookResult = hookFunc.call(cx, scope, thisObj, arrayOf(jsThis, jsArgs, jsResult))
+                                    if (hookResult != null && hookResult !is Undefined) {
+                                        result = hookResult
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                WeLogger.e(TAG_XPOSED_API, "xposed.hookAfter (JavaMethod) failed", e)
+                            }
+                            return Undefined.instance
+                        }
+                    }
+
+                    // Original (className, methodName, hookFunc) overload
+                    val className = first?.toString() ?: return Undefined.instance
                     val methodName = args.getOrNull(1)?.toString() ?: return Undefined.instance
                     val hookFunc = args.getOrNull(2) as? org.mozilla.javascript.Function ?: return Undefined.instance
 
@@ -1055,5 +1107,308 @@ object JsApiExposer {
         )
 
         ScriptableObject.putProperty(scope, "task", taskObj)
+    }
+
+    // --- Reflection API ---
+
+    private fun getJvmDescriptor(type: Class<*>): String = when {
+        type.isPrimitive -> when (type.name) {
+            "void" -> "V"
+            "int" -> "I"
+            "boolean" -> "Z"
+            "byte" -> "B"
+            "short" -> "S"
+            "long" -> "J"
+            "float" -> "F"
+            "double" -> "D"
+            "char" -> "C"
+            else -> error("Unknown primitive: ${type.name}")
+        }
+
+        type.isArray -> "[" + getJvmDescriptor(type.componentType!!)
+        else -> "L${type.name.replace('.', '/')};"
+    }
+
+    private fun getMethodDescriptor(method: Method): String {
+        val params = method.parameterTypes.joinToString("") { getJvmDescriptor(it) }
+        return "($params)${getJvmDescriptor(method.returnType)}"
+    }
+
+    private fun getModifierStrings(mods: Int): Array<String> =
+        Modifier.toString(mods).split(" ").toTypedArray()
+
+    private fun createJavaFieldObject(
+        field: Field,
+        className: String,
+        cx: Context,
+        scope: Scriptable
+    ): NativeObject {
+        val obj = NativeObject()
+        ScriptableObject.putProperty(obj, "name", field.name)
+        ScriptableObject.putProperty(obj, "className", className)
+        ScriptableObject.putProperty(obj, "type", field.type.name)
+        ScriptableObject.putProperty(
+            obj, "modifiers",
+            cx.newArray(scope, getModifierStrings(field.modifiers))
+        )
+
+        ScriptableObject.putProperty(obj, "get", object : BaseFunction() {
+            override fun call(
+                cx: Context,
+                scope: Scriptable,
+                thisObj: Scriptable,
+                args: Array<Any?>
+            ): Any? {
+                return try {
+                    val instance = args.getOrNull(0)
+                    field.isAccessible = true
+                    val value = field.get(if (instance is Undefined) null else instance)
+                    Context.javaToJS(value, scope, cx) ?: Undefined.instance
+                } catch (e: Exception) {
+                    WeLogger.e(TAG_REFLECT_API, "reflect field.get failed on $className.${field.name}", e)
+                    Undefined.instance
+                }
+            }
+        })
+
+        ScriptableObject.putProperty(obj, "set", object : BaseFunction() {
+            override fun call(
+                cx: Context,
+                scope: Scriptable,
+                thisObj: Scriptable,
+                args: Array<Any?>
+            ): Any {
+                return try {
+                    field.isAccessible = true
+                    if (args.size >= 2) {
+                        val instance = args[0]
+                        val value = Context.jsToJava(args[1], field.type)
+                        field.set(if (instance is Undefined) null else instance, value)
+                    } else {
+                        val value = Context.jsToJava(args.getOrNull(0), field.type)
+                        field.set(null, value)
+                    }
+                    Undefined.instance
+                } catch (e: Exception) {
+                    WeLogger.e(TAG_REFLECT_API, "reflect field.set failed on $className.${field.name}", e)
+                    Undefined.instance
+                }
+            }
+        })
+
+        return obj
+    }
+
+    private fun createJavaMethodObject(
+        method: Method,
+        className: String,
+        cx: Context,
+        scope: Scriptable
+    ): NativeObject {
+        val obj = NativeObject()
+        ScriptableObject.putProperty(obj, "name", method.name)
+        ScriptableObject.putProperty(obj, "className", className)
+        ScriptableObject.putProperty(obj, "descriptor", getMethodDescriptor(method))
+        ScriptableObject.putProperty(
+            obj, "paramTypes",
+            cx.newArray(scope, method.parameterTypes.map { it.name }.toTypedArray())
+        )
+        ScriptableObject.putProperty(obj, "returnType", method.returnType.name)
+        ScriptableObject.putProperty(
+            obj, "modifiers",
+            cx.newArray(scope, getModifierStrings(method.modifiers))
+        )
+
+        // Store hidden references for the xposed.* overload that accepts JavaMethod
+        ScriptableObject.putProperty(obj, "__method", method)
+        ScriptableObject.putProperty(obj, "__className", className)
+
+        ScriptableObject.putProperty(obj, "hookBefore", object : BaseFunction() {
+            override fun call(
+                cx: Context,
+                scope: Scriptable,
+                thisObj: Scriptable,
+                args: Array<Any?>
+            ): Any {
+                val hookFunc = args.getOrNull(0) as? org.mozilla.javascript.Function
+                    ?: return Undefined.instance
+                try {
+                    method.isAccessible = true
+                    method.hookBeforeDirectly {
+                        val jsThis = thisObject?.let { Context.javaToJS(it, scope, cx) }
+                        val jsArgs = args.let { Context.javaToJS(it, scope, cx) }
+                            ?: Undefined.instance
+                        val hookResult = hookFunc.call(cx, scope, thisObj, arrayOf(jsThis, jsArgs))
+                        if (hookResult != null && hookResult !is Undefined) {
+                            result = hookResult
+                        }
+                    }
+                } catch (e: Exception) {
+                    WeLogger.e(TAG_REFLECT_API, "reflect method hookBefore failed on $className.${method.name}", e)
+                }
+                return Undefined.instance
+            }
+        })
+
+        ScriptableObject.putProperty(obj, "hookAfter", object : BaseFunction() {
+            override fun call(
+                cx: Context,
+                scope: Scriptable,
+                thisObj: Scriptable,
+                args: Array<Any?>
+            ): Any {
+                val hookFunc = args.getOrNull(0) as? org.mozilla.javascript.Function
+                    ?: return Undefined.instance
+                try {
+                    method.isAccessible = true
+                    method.hookAfterDirectly {
+                        val jsThis = thisObject?.let { Context.javaToJS(it, scope, cx) }
+                        val jsArgs = args.let { Context.javaToJS(it, scope, cx) }
+                            ?: Undefined.instance
+                        val jsResult = result?.let { Context.javaToJS(it, scope, cx) }
+                            ?: Undefined.instance
+                        val hookResult = hookFunc.call(cx, scope, thisObj, arrayOf(jsThis, jsArgs, jsResult))
+                        if (hookResult != null && hookResult !is Undefined) {
+                            result = hookResult
+                        }
+                    }
+                } catch (e: Exception) {
+                    WeLogger.e(TAG_REFLECT_API, "reflect method hookAfter failed on $className.${method.name}", e)
+                }
+                return Undefined.instance
+            }
+        })
+
+        return obj
+    }
+
+    private fun exposeReflectApis(scope: ScriptableObject) {
+        val reflectObj = NativeObject()
+
+        ScriptableObject.putProperty(reflectObj, "fields", object : BaseFunction() {
+            override fun call(
+                cx: Context,
+                scope: Scriptable,
+                thisObj: Scriptable,
+                args: Array<Any?>
+            ): Any? {
+                val className = args.getOrNull(0)?.toString() ?: return cx.newArray(scope, emptyArray())
+                val condition = args.getOrNull(1) as? org.mozilla.javascript.Function
+                    ?: return cx.newArray(scope, emptyArray())
+                return try {
+                    val clazz = className.toClass()
+                    val matches = clazz.declaredFields.filter { field ->
+                        val modStrs = getModifierStrings(field.modifiers)
+                        val jsModStrs = cx.newArray(scope, modStrs)
+                        val condResult = condition.call(
+                            cx, scope, thisObj,
+                            arrayOf(field.name, field.type.name, jsModStrs)
+                        )
+                        Context.toBoolean(condResult)
+                    }
+                    val wrappers = matches.map { createJavaFieldObject(it, className, cx, scope) }
+                    cx.newArray(scope, wrappers.toTypedArray())
+                } catch (e: Exception) {
+                    WeLogger.e(TAG_REFLECT_API, "reflect.fields failed for $className", e)
+                    cx.newArray(scope, emptyArray())
+                }
+            }
+        })
+
+        ScriptableObject.putProperty(reflectObj, "firstField", object : BaseFunction() {
+            override fun call(
+                cx: Context,
+                scope: Scriptable,
+                thisObj: Scriptable,
+                args: Array<Any?>
+            ): Any? {
+                val className = args.getOrNull(0)?.toString() ?: return Undefined.instance
+                val condition = args.getOrNull(1) as? org.mozilla.javascript.Function
+                    ?: return Undefined.instance
+                return try {
+                    val clazz = className.toClass()
+                    val match = clazz.declaredFields.firstOrNull { field ->
+                        val modStrs = getModifierStrings(field.modifiers)
+                        val jsModStrs = cx.newArray(scope, modStrs)
+                        val condResult = condition.call(
+                            cx, scope, thisObj,
+                            arrayOf(field.name, field.type.name, jsModStrs)
+                        )
+                        Context.toBoolean(condResult)
+                    }
+                    match?.let { createJavaFieldObject(it, className, cx, scope) }
+                        ?: Undefined.instance
+                } catch (e: Exception) {
+                    WeLogger.e(TAG_REFLECT_API, "reflect.firstField failed for $className", e)
+                    Undefined.instance
+                }
+            }
+        })
+
+        ScriptableObject.putProperty(reflectObj, "methods", object : BaseFunction() {
+            override fun call(
+                cx: Context,
+                scope: Scriptable,
+                thisObj: Scriptable,
+                args: Array<Any?>
+            ): Any? {
+                val className = args.getOrNull(0)?.toString() ?: return cx.newArray(scope, emptyArray())
+                val condition = args.getOrNull(1) as? org.mozilla.javascript.Function
+                    ?: return cx.newArray(scope, emptyArray())
+                return try {
+                    val clazz = className.toClass()
+                    val matches = clazz.declaredMethods.filter { method ->
+                        val paramTypeNames = method.parameterTypes.map { it.name }.toTypedArray()
+                        val jsParamTypes = cx.newArray(scope, paramTypeNames)
+                        val modStrs = getModifierStrings(method.modifiers)
+                        val jsModStrs = cx.newArray(scope, modStrs)
+                        val condResult = condition.call(
+                            cx, scope, thisObj,
+                            arrayOf(method.name, jsParamTypes, method.returnType.name, jsModStrs)
+                        )
+                        Context.toBoolean(condResult)
+                    }
+                    val wrappers = matches.map { createJavaMethodObject(it, className, cx, scope) }
+                    cx.newArray(scope, wrappers.toTypedArray())
+                } catch (e: Exception) {
+                    WeLogger.e(TAG_REFLECT_API, "reflect.methods failed for $className", e)
+                    cx.newArray(scope, emptyArray())
+                }
+            }
+        })
+
+        ScriptableObject.putProperty(reflectObj, "firstMethod", object : BaseFunction() {
+            override fun call(
+                cx: Context,
+                scope: Scriptable,
+                thisObj: Scriptable,
+                args: Array<Any?>
+            ): Any? {
+                val className = args.getOrNull(0)?.toString() ?: return Undefined.instance
+                val condition = args.getOrNull(1) as? org.mozilla.javascript.Function
+                    ?: return Undefined.instance
+                return try {
+                    val clazz = className.toClass()
+                    val match = clazz.declaredMethods.firstOrNull { method ->
+                        val paramTypeNames = method.parameterTypes.map { it.name }.toTypedArray()
+                        val jsParamTypes = cx.newArray(scope, paramTypeNames)
+                        val modStrs = getModifierStrings(method.modifiers)
+                        val jsModStrs = cx.newArray(scope, modStrs)
+                        val condResult = condition.call(
+                            cx, scope, thisObj,
+                            arrayOf(method.name, jsParamTypes, method.returnType.name, jsModStrs)
+                        )
+                        Context.toBoolean(condResult)
+                    }
+                    match?.let { createJavaMethodObject(it, className, cx, scope) }
+                        ?: Undefined.instance
+                } catch (e: Exception) {
+                    WeLogger.e(TAG_REFLECT_API, "reflect.firstMethod failed for $className", e)
+                    Undefined.instance
+                }
+            }
+        })
+
+        ScriptableObject.putProperty(scope, "reflect", reflectObj)
     }
 }

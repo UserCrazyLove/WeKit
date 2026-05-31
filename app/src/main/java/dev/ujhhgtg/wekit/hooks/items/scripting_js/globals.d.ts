@@ -2,51 +2,50 @@
  * 脚本全局 API 定义
  */
 
+// --- 通用类型 ---
+
 interface HttpResponse {
     /** 请求是否成功 (status < 400) */
-    ok: boolean;
+    readonly ok: boolean;
     /** HTTP 状态码 */
-    status: number;
+    readonly status: number;
     /** 响应体字符串 */
-    body: string;
+    readonly body: string;
     /** 如果响应体是 JSON，则为自动解析好的对象；否则为 null */
-    json: any | null;
+    readonly json: unknown | null;
     /** 错误信息（如果有） */
-    error?: string;
+    readonly error?: string;
 }
 
-interface DownloadResult {
-    /** 下载是否成功 */
-    ok: boolean;
-    /** 文件保存的绝对路径 */
-    path: string;
-}
+// --- 日志 API ---
 
 declare namespace log {
     /**
      * 输出调试级别日志
      * @param message 要记录的消息，支持多个参数
      */
-    function d(...message: any[]): void;
+    function d(...message: unknown[]): void;
     
     /**
      * 输出信息级别日志
      * @param message 要记录的消息，支持多个参数
      */
-    function i(...message: any[]): void;
+    function i(...message: unknown[]): void;
     
     /**
      * 输出警告级别日志
      * @param message 要记录的消息，支持多个参数
      */
-    function w(...message: any[]): void;
+    function w(...message: unknown[]): void;
     
     /**
      * 输出错误级别日志
      * @param message 要记录的消息，支持多个参数
      */
-    function e(...message: any[]): void;
+    function e(...message: unknown[]): void;
 }
+
+// --- HTTP 请求 API ---
 
 declare namespace http {
     /**
@@ -58,7 +57,7 @@ declare namespace http {
      * @example
      * const resp = http.get("https://api.example.com/user", { id: 123 }, { "Authorization": "Bearer token" });
      * if (resp.ok) {
-     *   log.i("User:", resp.json.name);
+     *   log.i("User:", resp.json);
      * }
      */
     function get(url: string, params?: Record<string, string | number>, headers?: Record<string, string>): HttpResponse;
@@ -77,20 +76,23 @@ declare namespace http {
      * // POST Form
      * const resp2 = http.post("https://api.example.com/login", { username: "user", password: "pass" });
      */
-    function post(url: string, formData?: Record<string, string | number>, jsonBody?: any, headers?: Record<string, string>): HttpResponse;
+    function post(url: string, formData?: Record<string, string | number>, jsonBody?: unknown, headers?: Record<string, string>): HttpResponse;
     
     /**
      * 下载文件到宿主缓存目录；下载位置保证可被宿主访问，可直接传入 sendImage(), sendFile() 等
      * @param url 文件的 URL
-     * @returns 下载结果，包含文件路径
+     * @param filename 自定义文件名（可选）
+     * @returns 下载成功返回文件绝对路径，失败返回 null
      * @example
-     * const result = http.download("https://example.com/image.jpg");
-     * if (result.ok) {
-     *   replyImage(result.path);
+     * const path = http.download("https://example.com/image.jpg");
+     * if (path) {
+     *   replyImage(path);
      * }
      */
-    function download(url: string): DownloadResult;
+    function download(url: string, filename?: string): string | null;
 }
+
+// --- 持久化存储 API ---
 
 declare namespace storage {
     /**
@@ -103,7 +105,7 @@ declare namespace storage {
      *   log.i("Counter:", value);
      * }
      */
-    function get(key: string): any;
+    function get(key: string): unknown;
     
     /**
      * 获取值，若不存在则返回提供的默认值 def。
@@ -114,7 +116,7 @@ declare namespace storage {
      * const count = storage.getOrDefault("counter", 0);
      * storage.set("counter", count + 1);
      */
-    function getOrDefault(key: string, def: any): any;
+    function getOrDefault(key: string, def: unknown): unknown;
     
     /**
      * 存入键值对。若 value 为 undefined 则移除该键。
@@ -124,7 +126,7 @@ declare namespace storage {
      * storage.set("lastUser", "wxid_abc123");
      * storage.set("settings", { enabled: true, threshold: 10 });
      */
-    function set(key: string, value: any): void;
+    function set(key: string, value: unknown): void;
     
     /**
      * 判断是否存在指定的键。
@@ -140,20 +142,12 @@ declare namespace storage {
     /**
      * 移除指定的键。
      * @param key 键名
+     * @returns 被移除的值，不存在则返回 undefined
      * @example
-     * storage.remove("tempData");
+     * const old = storage.remove("tempKey");
      */
-    function remove(key: string): void;
-    
-    /**
-     * 取出并立即移除该键。若不存在返回 undefined。
-     * @param key 键名
-     * @returns 该键的值
-     * @example
-     * const tempValue = storage.pop("oneTimeToken");
-     */
-    function pop(key: string): any;
-    
+    function remove(key: string): unknown;
+
     /**
      * 返回包含所有键名的字符串数组。
      * @returns 所有键名的数组
@@ -184,13 +178,15 @@ declare namespace storage {
     function isEmpty(): boolean;
 }
 
+// --- 日期/时间 API ---
+
 declare namespace datetime {
     /**
      * 休眠指定的秒数
      * @param seconds 休眠的秒数
      * @example
      * log.i("开始等待...");
-     * time.sleepS(3);
+     * datetime.sleepS(3);
      * log.i("等待结束");
      */
     function sleepS(seconds: number): void;
@@ -200,7 +196,7 @@ declare namespace datetime {
      * @param milliseconds 休眠的毫秒数
      * @example
      * log.i("短暂延迟...");
-     * time.sleepMs(500);
+     * datetime.sleepMs(500);
      * log.i("延迟结束");
      */
     function sleepMs(milliseconds: number): void;
@@ -209,13 +205,16 @@ declare namespace datetime {
      * 获取当前 Unix 时间戳（秒）
      * @returns 当前时间的 Unix 时间戳
      * @example
-     * const now = time.getCurrentUnixEpoch();
+     * const now = datetime.getCurrentUnixEpoch();
      * log.i("当前 Unix 时间戳:", now);
      */
     function getCurrentUnixEpoch(): number;
 }
 
+// --- 微信 API ---
+
 declare namespace wechat {
+
     // --- 消息发送 API (指定接收人) ---
 
     /**
@@ -223,9 +222,9 @@ declare namespace wechat {
      * @param to 接收者的 wxid 或群 ID
      * @param text 消息文本内容
      * @example
-     * sendText("wxid_abc123", "你好！");
+     * wechat.sendText("wxid_abc123", "你好！");
      */
-    declare function sendText(to: string, text: string): void;
+    function sendText(to: string, text: string): void;
 
     /**
      * 向指定用户发送图片消息
@@ -234,10 +233,10 @@ declare namespace wechat {
      * @example
      * const result = http.download("https://example.com/image.jpg");
      * if (result.ok) {
-     *   sendImage("wxid_abc123", result.path);
+     *   wechat.sendImage("wxid_abc123", result.path);
      * }
      */
-    declare function sendImage(to: string, path: string): void;
+    function sendImage(to: string, path: string): void;
 
     /**
      * 向指定用户发送文件消息
@@ -245,9 +244,9 @@ declare namespace wechat {
      * @param path 文件的绝对路径
      * @param title 文件显示名称（可选）
      * @example
-     * sendFile("wxid_abc123", "/sdcard/document.pdf", "重要文档.pdf");
+     * wechat.sendFile("wxid_abc123", "/sdcard/document.pdf", "重要文档.pdf");
      */
-    declare function sendFile(to: string, path: string, title?: string): void;
+    function sendFile(to: string, path: string, title?: string): void;
 
     /**
      * 向指定用户发送语音消息
@@ -255,18 +254,18 @@ declare namespace wechat {
      * @param path 语音文件的绝对路径（需为 AMR 格式）
      * @param durationMs 语音时长（毫秒）
      * @example
-     * sendVoice("wxid_abc123", "/data/voice.amr", 3000);
+     * wechat.sendVoice("wxid_abc123", "/data/voice.amr", 3000);
      */
-    declare function sendVoice(to: string, path: string, durationMs: number): void;
+    function sendVoice(to: string, path: string, durationMs: number): void;
 
     /**
      * 向指定用户发送卡片消息
      * @param to 接收者的 wxid 或群 ID
      * @param content 消息内容
      * @example
-     * sendAppMsg("wxid_abc123", "<msg>...</msg>");
+     * wechat.sendAppMsg("wxid_abc123", "<msg>...</msg>");
      */
-    declare function sendAppMsg(to: string, content: string): void;
+    function sendAppMsg(to: string, content: string): void;
 
     // --- 消息回复 API (自动回复至发送者) ---
 
@@ -276,39 +275,39 @@ declare namespace wechat {
      * @example
      * function onMessage(talker, content, type, isSend) {
      *   if (content === "ping") {
-     *     replyText("pong");
+     *     wechat.replyText("pong");
      *   }
      * }
      */
-    declare function replyText(text: string): void;
+    function replyText(text: string): void;
 
     /**
      * 回复图片消息给当前发送者
      * @param path 图片文件的绝对路径
      */
-    declare function replyImage(path: string): void;
+    function replyImage(path: string): void;
 
     /**
      * 回复文件消息给当前发送者
      * @param path 文件的绝对路径
      * @param title 文件显示名称（可选）
      */
-    declare function replyFile(path: string, title?: string): void;
+    function replyFile(path: string, title?: string): void;
 
     /**
      * 回复语音消息给当前发送者
      * @param path 语音文件的绝对路径（需为 AMR 格式）
      * @param durationMs 语音时长（毫秒）
      */
-    declare function replyVoice(path: string, durationMs: number): void;
+    function replyVoice(path: string, durationMs: number): void;
 
     /**
      * 回复卡片消息给当前发送者
      * @param content 消息内容
      * @example
-     * replyAppMsg("<msg>...</msg>");
+     * wechat.replyAppMsg("<msg>...</msg>");
      */
-    declare function replyAppMsg(content: string): void;
+    function replyAppMsg(content: string): void;
 
     // --- 其他 API ---
 
@@ -322,7 +321,7 @@ declare namespace wechat {
      * @param onSuccess 成功回调，接收 JSON 字符串
      * @param onFailure 失败回调，接收错误信息字符串
      * @example
-     * sendCgi("/cgi-bin/mmbiz-bin/xxx", 123, 0, 0, '{"key":"value"}', function(json) {
+     * wechat.sendCgi("/cgi-bin/mmbiz-bin/xxx", 123, 0, 0, '{"key":"value"}', function(json) {
      *   log.i("Success:", json);
      * }, function(err) {
      *   log.e("Failed:", err);
@@ -334,14 +333,16 @@ declare namespace wechat {
      * 获取当前用户的微信 ID
      * @returns 当前用户的微信 ID 字符串
      */
-    declare function getSelfWxId(): string;
+    function getSelfWxId(): string;
 
     /**
      * 获取当前用户的微信号
      * @returns 当前用户的微信号字符串
      */
-    declare function getSelfCustomWxId(): string;
+    function getSelfCustomWxId(): string;
 }
+
+// --- 异步任务 API ---
 
 declare namespace task {
     /**
@@ -356,9 +357,27 @@ declare namespace task {
     function run(fn: () => void): void;
 }
 
+// --- Xposed Hook API ---
+
 declare namespace xposed {
     /**
-     * 在目标 Java 方法执行前插入钩子，可修改方法参数或返回值
+     * 在目标 Java 方法执行前插入钩子（通过 JavaMethod 对象匹配）
+     * @param method 通过 reflect.methods/firstMethod 获取的 JavaMethod 对象
+     * @param hookFunc 钩子回调函数，接收 (thisObj, args)
+     *   若返回非 undefined 的值，将作为方法的返回值
+     * @example
+     * const m = reflect.firstMethod("com.example.Cls", function(name, pt, ret, mods) {
+     *   return name === "targetMethod";
+     * });
+     * xposed.hookBefore(m, function(thisObj, args) {
+     *   log.i("hooked via reflect!");
+     * });
+     */
+    function hookBefore(method: JavaMethod, hookFunc: (thisObj: unknown, args: unknown[]) => unknown | void): void;
+    
+    /**
+     * 在目标 Java 方法执行前插入钩子（通过类名与方法名匹配）
+     * ⚠️ 警告：本方法*无法*区分方法重载，如有需要，请使用 reflect API
      * @param className 目标类的全限定名（例如 "com.tencent.mm.ui.LauncherUI"）
      * @param methodName 目标方法名
      * @param hookFunc 钩子回调函数，接收参数：
@@ -366,16 +385,25 @@ declare namespace xposed {
      *   - args: 方法参数数组
      *   若返回非 undefined 的值，将作为方法的返回值
      * @example
-     * xposed.before("com.example.TargetClass", "targetMethod", function(thisObj, args) {
+     * xposed.hookBefore("com.example.TargetClass", "targetMethod", function(thisObj, args) {
      *   log.i("方法调用，参数：", args);
      *   // 修改第一个参数
      *   args[0] = "modified";
      * });
      */
-    declare function hookBefore(className: string, methodName: string, hookFunc: (thisObj: any, args: any[]) => any | void): void;
+    function hookBefore(className: string, methodName: string, hookFunc: (thisObj: unknown, args: unknown[]) => unknown | void): void;
 
     /**
-     * 在目标 Java 方法执行后插入钩子，可修改方法返回值
+     * 在目标 Java 方法执行后插入钩子（通过 JavaMethod 对象匹配）
+     * @param method 通过 reflect.methods/firstMethod 获取的 JavaMethod 对象
+     * @param hookFunc 钩子回调函数，接收 (thisObj, args, originalResult)
+     *   若返回非 undefined 的值，将作为方法的新返回值
+     */
+    function hookAfter(method: JavaMethod, hookFunc: (thisObj: unknown, args: unknown[], originalResult: unknown) => unknown | void): void;
+
+    /**
+     * 在目标 Java 方法执行后插入钩子（通过类名与方法名匹配）
+     * ⚠️ 警告：本方法*无法*区分方法重载，如有需要，请使用 reflect API
      * @param className 目标类的全限定名（例如 "com.tencent.mm.ui.LauncherUI"）
      * @param methodName 目标方法名
      * @param hookFunc 钩子回调函数，接收参数：
@@ -384,12 +412,112 @@ declare namespace xposed {
      *   - originalResult: 方法的原始返回值
      *   若返回非 undefined 的值，将作为方法的新返回值
      * @example
-     * xposed.after("com.example.TargetClass", "targetMethod", function(thisObj, args, result) {
+     * xposed.hookAfter("com.example.TargetClass", "targetMethod", function(thisObj, args, result) {
      *   log.i("方法返回：", result);
      *   return result + "（已修改）";
      * });
      */
-    declare function hookAfter(className: string, methodName: string, hookFunc: (thisObj: any, args: any[], originalResult: any) => any | void): void;
+    function hookAfter(className: string, methodName: string, hookFunc: (thisObj: unknown, args: unknown[], originalResult: unknown) => unknown | void): void;
+}
+
+// --- 反射 API ---
+
+interface JavaField {
+    /** 字段名 */
+    readonly name: string;
+    /** 所属类的全限定名 */
+    readonly className: string;
+    /** 字段类型的全限定名 */
+    readonly type: string;
+    /** 修饰符数组，例如 ["public", "static", "final"] */
+    readonly modifiers: string[];
+    /**
+     * 获取字段的值
+     * @param instance 实例对象（静态字段无需传入）
+     * @returns 字段的值
+     */
+    get(instance?: object): unknown;
+    /**
+     * 设置字段的值
+     * @param instanceOrValue 如果是实例字段则为实例对象，如果是静态字段则为要设置的值
+     * @param value 要设置的值（仅实例字段需要第二个参数）
+     */
+    set(instanceOrValue: object, value?: object): void;
+}
+
+interface JavaMethod {
+    /** 方法名 */
+    readonly name: string;
+    /** 所属类的全限定名 */
+    readonly className: string;
+    /** JVM 方法描述符，例如 "(Landroid/os/Bundle;)V" */
+    readonly descriptor: string;
+    /** 参数类型全限定名数组 */
+    readonly paramTypes: string[];
+    /** 返回值类型的全限定名 */
+    readonly returnType: string;
+    /** 修饰符数组 */
+    readonly modifiers: string[];
+    /**
+     * 在方法执行前插入钩子
+     * @param callback 钩子回调，接收 (thisObj, args)
+     *   若返回非 undefined 的值，将作为方法的返回值
+     */
+    hookBefore(callback: (thisObj: unknown, args: unknown[]) => unknown | void): void;
+    /**
+     * 在方法执行后插入钩子
+     * @param callback 钩子回调，接收 (thisObj, args, originalResult)
+     *   若返回非 undefined 的值，将作为方法的新返回值
+     */
+    hookAfter(callback: (thisObj: unknown, args: unknown[], originalResult: unknown) => unknown | void): void;
+}
+
+declare namespace reflect {
+    /**
+     * 查找类中所有符合条件的字段
+     * @param className 目标类的全限定名
+     * @param condition 过滤条件，接收 (name, type, modifiers)
+     * @returns 匹配的字段数组
+     * @example
+     * const fields = reflect.fields("com.tencent.mm.some.Class", function(name, type, mods) {
+     *   return mods.includes("static") && type === "int";
+     * });
+     * for (let i = 0; i < fields.length; i++) {
+     *   log.i(fields[i].name, "=", fields[i].get());
+     * }
+     */
+    function fields(className: string, condition: (name: string, type: string, modifiers: string[]) => boolean): JavaField[];
+
+    /**
+     * 查找类中第一个符合条件的字段
+     * @param className 目标类的全限定名
+     * @param condition 过滤条件，接收 (name, type, modifiers)
+     * @returns 匹配的字段，未找到返回 null
+     */
+    function firstField(className: string, condition: (name: string, type: string, modifiers: string[]) => boolean): JavaField | null;
+
+    /**
+     * 查找类中所有符合条件的方法
+     * @param className 目标类的全限定名
+     * @param condition 过滤条件，接收 (name, paramTypes, returnType, modifiers)
+     * @returns 匹配的方法数组
+     * @example
+     * const methods = reflect.methods("com.tencent.mm.some.Class", function(name, paramTypes, returnType, mods) {
+     *   return name === "onCreate" && paramTypes.length === 1;
+     * });
+     * methods[0].hookBefore(function(thisObj, args) {
+     *   log.i("onCreate called");
+     * });
+     */
+    function methods(className: string, condition: (name: string, paramTypes: string[], returnType: string, modifiers: string[]) => boolean): JavaMethod[];
+
+    /**
+     * 查找类中第一个符合条件的方法
+     * @param className 目标类的全限定名
+     * @param condition 过滤条件，接收 (name, paramTypes, returnType, modifiers)
+     * @returns 匹配的方法，未找到返回 null
+     */
+    function firstMethod(className: string, condition: (name: string, paramTypes: string[], returnType: string, modifiers: string[]) => boolean): JavaMethod | null;
 }
 
 // --- 入口点函数定义 ---
@@ -398,7 +526,7 @@ declare namespace xposed {
  * onMessage 钩子可以返回的消息对象结构
  */
 interface MessageResponse {
-    /** * 消息类型 
+    /** 消息类型
      * @default "text"
      */
     type?: "text" | "image" | "file" | "voice";
@@ -408,7 +536,7 @@ interface MessageResponse {
     path?: string;
     /** 文件标题/显示名称 (可选，仅用于 "file") */
     title?: string;
-    /** 语音时长（毫秒，仅用于 "voice") */
+    /** 语音时长（毫秒，仅用于 "voice"） */
     duration?: number;
 }
 
@@ -491,14 +619,13 @@ declare function onMessage(
  *   log.i("Intercepting request to:", uri);
  *   
  *   if (uri.includes("/upload")) {
- *     // 修改请求数据
  *     json.customField = "injected value";
  *   }
  *   
- *   return json;  // 必须返回
+ *   return json;
  * }
  */
-declare function onRequest(uri: string, cgiId: number, json: any): any;
+declare function onRequest(uri: string, cgiId: number, json: Record<string, unknown>): Record<string, unknown>;
 
 /**
  * 响应钩子 - 拦截并修改微信收到的网络响应
@@ -516,20 +643,18 @@ declare function onRequest(uri: string, cgiId: number, json: any): any;
  *   log.i("Intercepting response from:", uri);
  *   
  *   if (uri.includes("/getUserInfo")) {
- *     // 修改响应数据
  *     json.vipLevel = 10;
  *   }
  *   
- *   // 记录到外部服务
  *   http.post("https://analytics.example.com/log", null, {
  *     uri: uri,
- *     timestamp: time.getCurrentUnixEpoch()
+ *     timestamp: datetime.getCurrentUnixEpoch()
  *   });
  *   
- *   return json;  // 必须返回
+ *   return json;
  * }
  */
-declare function onResponse(uri: string, cgiId: number, json: any): any;
+declare function onResponse(uri: string, cgiId: number, json: Record<string, unknown>): Record<string, unknown>;
 
 // --- 常用辅助函数（建议在脚本中定义） ---
 

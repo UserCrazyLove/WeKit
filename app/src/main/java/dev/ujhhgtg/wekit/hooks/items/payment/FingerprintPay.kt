@@ -102,7 +102,6 @@ object FingerprintPay : ClickableHookItem() {
 
             val activity = thisObject as Activity
             val root = activity.rootView
-            debugViewTree(root)
 
             CoroutineScope(Dispatchers.Main).launch {
                 delay(300.milliseconds)

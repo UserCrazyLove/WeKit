@@ -11,10 +11,15 @@ import org.luckypray.dexkit.DexKitBridge
 @HookItem(path = "小程序/移除开屏广告", description = "跳过小程序开屏广告")
 object RemoveSplashAds : SwitchHookItem(), IResolvesDex {
 
+    private val methodIsAdContact by dexMethod()
     private val methodAdDataCallback by dexMethod()
     private val methodCheckCanShowAd by dexMethod()
 
     override fun onEnable() {
+        methodIsAdContact.hookBefore {
+            result = false
+        }
+
         methodAdDataCallback.hookBefore {
             result = null
         }
@@ -31,6 +36,12 @@ object RemoveSplashAds : SwitchHookItem(), IResolvesDex {
     }
 
     override fun resolveDex(dexKit: DexKitBridge) {
+        methodIsAdContact.find(dexKit) {
+            matcher {
+                usingEqStrings("MicroMsg.AppBrandAdUtils[AppBrandSplashAd]", "isAdContact, appId:%s, canShowAd:%s")
+            }
+        }
+
         methodAdDataCallback.find(dexKit) {
             searchPackages("com.tencent.mm.plugin.appbrand.jsapi.auth")
             matcher {
