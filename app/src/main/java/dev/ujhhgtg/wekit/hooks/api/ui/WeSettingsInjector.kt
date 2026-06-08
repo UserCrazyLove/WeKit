@@ -287,11 +287,11 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
 
     private const val WEKIT_SETTING_ITEM_NAME_RES_ID = -1337
 
-    private val GROUP_SETTING_ITEM_CLASS by lazy { SettingGroupMain::class.java }
+    private val GROUP_SETTING_ITEM_CLASS = SettingGroupMain::class.java
 
     // or SettingGroupPrivacyPermission & SettingGroupNotify
-    private val PARENT_SETTING_ITEM_CLASS by lazy { SettingAdditionHeaderSearch::class.java }
-    private val CHILD_SETTING_ITEM_CLASS by lazy { SettingGroupPersonalInfo::class.java }
+    private val PARENT_SETTING_ITEM_CLASS = SettingAdditionHeaderSearch::class.java
+    private val CHILD_SETTING_ITEM_CLASS= SettingGroupPersonalInfo::class.java
 
     private val customSettingItemClass by lazy {
         // this is only used for resolving method names, so we'll hard-code SettingGroupAccountInfo
@@ -320,7 +320,7 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
                 when (method.name) {
                     mGetGroupItemClass -> GROUP_SETTING_ITEM_CLASS
                     mReturns1 -> 1
-                    mOnClick -> openSettingsDialog(args[0] as Context)
+                    mOnClick -> openSettingsDialog(args[0] as Activity)
                     mGetStringId -> "SettingGroup_Main_Other_WeKit"
                     mGetSettingLocation -> classSettingLocation.clazz.createInstance(
                         GROUP_SETTING_ITEM_CLASS,
@@ -488,8 +488,8 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun openSettingsDialog(context: Context) {
-        MainSettingsScreen().show(context)
+    private inline fun openSettingsDialog(activity: Activity) {
+        MainSettingsScreen().show(activity)
     }
 
 //    private class SettingsMenuItemClickListener(val context: Context) :

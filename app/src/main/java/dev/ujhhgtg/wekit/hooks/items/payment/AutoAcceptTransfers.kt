@@ -1,6 +1,21 @@
 package dev.ujhhgtg.wekit.hooks.items.payment
 
 import android.content.ContentValues
+import android.content.Context
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor
@@ -11,14 +26,22 @@ import dev.ujhhgtg.wekit.hooks.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.hooks.api.core.models.MessageInfo
 import dev.ujhhgtg.wekit.hooks.api.core.models.MessageType
 import dev.ujhhgtg.wekit.hooks.api.net.WeNetSceneApi
+import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
-import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.RuntimeConfig
+import dev.ujhhgtg.wekit.preferences.WePrefs
+import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
+import dev.ujhhgtg.wekit.ui.content.Button
+import dev.ujhhgtg.wekit.ui.content.ContactsSelector
+import dev.ujhhgtg.wekit.ui.content.DefaultColumn
+import dev.ujhhgtg.wekit.ui.content.TextButton
+import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
+import kotlin.concurrent.thread
+import kotlin.random.Random
 
 @HookItem(name = "自动接收转账", categories = ["红包与支付"], description = "监听消息并自动接收转账")
-object AutoAcceptTransfers : SwitchHookItem(), IResolvesDex, WeDatabaseListenerApi.IInsertListener {
+object AutoAcceptTransfers : ClickableHookItem(), IResolvesDex, WeDatabaseListenerApi.IInsertListener {
 
     private val TAG = This.Class.simpleName
 
@@ -40,19 +63,7 @@ object AutoAcceptTransfers : SwitchHookItem(), IResolvesDex, WeDatabaseListenerA
         handleTransfer(values)
     }
 
-//    private val RECEIVER_USERNAME_REGEX = Regex("""receiver_username.*?>\s*<!\[CDATA\[(.*?)]]>""")
-
     private val PAY_SUBTYPE_REGEX = Regex("<paysubtype.*?(\\d+)</paysubtype>")
-
-//    private fun parseReceiverFromXml(xml: String): String? {
-//        return runCatching {
-//            RECEIVER_USERNAME_REGEX
-//                .find(xml)
-//                ?.groupValues
-//                ?.get(1)
-//                ?.trim()
-//        }.getOrDefault(null)
-//    }
 
     private fun parsePaySubtypeFromXml(xml: String): String? {
         return runCatching {
@@ -65,21 +76,9 @@ object AutoAcceptTransfers : SwitchHookItem(), IResolvesDex, WeDatabaseListenerA
     }
 
     private fun handleTransfer(values: ContentValues) {
-        if (values.getAsInteger("isSend") == 1) return
+        if (values.getAsInteger("isSend") == 1 && !WePrefs.getBoolOrFalse("transfer_self")) return
 
         val content = values.getAsString("content") ?: return
-//        val receiver = parseReceiverFromXml(content)
-
-//        val mmPrefs = RuntimeConfig.mmPrefs
-//        val val1 = mmPrefs.getString("login_weixin_username", "")
-//        val val2 = mmPrefs.getString("login_user_name", "")
-//        WeLogger.d("RuntimeConfig", "val1=$val1, val2=$val2")
-//
-//        WeLogger.d(TAG, "receiver: $receiver, selfWxId: ${WeApi.selfWxId}")
-//        if (WeApi.selfWxId.isNotBlank() && receiver != WeApi.selfWxId) {
-//            WeLogger.w(TAG, "receiver is not self, ignoring")
-//            return
-//        }
 
         val subtype = parsePaySubtypeFromXml(content)
         if (subtype != "1") {
@@ -101,6 +100,15 @@ object AutoAcceptTransfers : SwitchHookItem(), IResolvesDex, WeDatabaseListenerA
             return
         }
 
+        val useWhitelist = WePrefs.getBoolOrFalse("transfer_use_whitelist")
+        if (useWhitelist) {
+            val whitelist = WePrefs.getStringSetOrDef("transfer_whitelist", emptySet())
+            if (payerUsername !in whitelist) return
+        } else {
+            val blacklist = WePrefs.getStringSetOrDef("transfer_blacklist", emptySet())
+            if (payerUsername in blacklist) return
+        }
+
         val netScene = run {
             val transactionId = transferMsg.transactionId
             val transferId = transferMsg.transferId
@@ -116,11 +124,164 @@ object AutoAcceptTransfers : SwitchHookItem(), IResolvesDex, WeDatabaseListenerA
             }
         }
 
-        WeNetSceneApi.addNetSceneToQueue(netScene)
-        WeLogger.i(TAG, "constructed net scene and added to queue")
+        val customDelay =
+            WePrefs.getStringOrDef("transfer_delay_custom", "0").toLongOrNull() ?: 0L
+        val randomRange = (WePrefs.getStringOrDef("transfer_delay_random_range", "300")
+            .toLongOrNull() ?: 300L).coerceAtLeast(0)
 
-        val displayName = WeDatabaseApi.getDisplayName(payerUsername)
-        showToast("收到「${displayName}」的转账 ${transferMsg.feedesc}")
+        WeLogger.i(TAG, "config: customDelay=$customDelay, randomRange=$randomRange")
+
+        val delayTime = if (randomRange > 0) {
+            val baseDelay = if (customDelay > 0) customDelay else 1000L
+            val randomOffset = Random.nextLong(-randomRange, randomRange)
+            val finalDelay = (baseDelay + randomOffset).coerceAtLeast(0)
+            WeLogger.i(
+                TAG,
+                "random delay mode: baseDelay=$baseDelay, randomOffset=$randomOffset, finalDelay=$finalDelay"
+            )
+            finalDelay
+        } else {
+            WeLogger.i(TAG, "fixed delay mode: finalDelay=$customDelay")
+            customDelay
+        }
+
+        thread(name = "AcceptTransferThread") {
+            try {
+                if (delayTime > 0) {
+                    WeLogger.i(TAG, "started delaying for ${delayTime}ms")
+                    Thread.sleep(delayTime)
+                }
+
+                WeNetSceneApi.addNetSceneToQueue(netScene)
+                WeLogger.i(TAG, "constructed net scene and added to queue")
+
+                val autoReply = WePrefs.getStringOrDef("transfer_auto_reply", "")
+                if (autoReply.isNotBlank()) {
+                    WeMessageApi.sendText(msgInfo.talker, autoReply.replace($$"$amount", transferMsg.feedesc))
+                }
+
+                if (!WePrefs.getBoolOrFalse("transfer_notification")) return@thread
+
+                val displayName = WeDatabaseApi.getDisplayName(payerUsername)
+                showToast("收到「${displayName}」的转账 ${transferMsg.feedesc}")
+            } catch (e: Throwable) {
+                WeLogger.e(TAG, "failed to send accept transfer request", e)
+            }
+        }
+    }
+
+    override fun onClick(context: Context) {
+        showComposeDialog(context) {
+            var notification by remember { mutableStateOf(WePrefs.getBoolOrFalse("transfer_notification")) }
+            var self by remember { mutableStateOf(WePrefs.getBoolOrFalse("transfer_self")) }
+            var delayInput by remember { mutableStateOf(WePrefs.getStringOrDef("transfer_delay_custom", "500")) }
+            var useWhitelist by remember { mutableStateOf(WePrefs.getBoolOrFalse("transfer_use_whitelist")) }
+            var randomRangeInput by remember { mutableStateOf(WePrefs.getStringOrDef("transfer_delay_random_range", "300")) }
+            var autoReplyInput by remember { mutableStateOf(WePrefs.getStringOrDef("transfer_auto_reply", "")) }
+
+            AlertDialogContent(
+                title = { Text("自动接收转账") },
+                text = {
+                    DefaultColumn(Modifier.verticalScroll(rememberScrollState())) {
+                        ListItem(
+                            headlineContent = { Text(if (useWhitelist) "黑名单 [> 白名单 <]" else "[> 黑名单 <] 白名单") },
+                            supportingContent = { Text(if (useWhitelist) "仅对选中联系人接收转账" else "对选中联系人跳过接收转账") },
+                            trailingContent = { Switch(checked = useWhitelist, onCheckedChange = { useWhitelist = it }) },
+                            modifier = Modifier.clickable { useWhitelist = !useWhitelist }
+                        )
+                        ListItem(
+                            headlineContent = { Text(if (useWhitelist) "配置白名单" else "配置黑名单") },
+                            supportingContent = { Text("点击选择联系人") },
+                            modifier = Modifier.clickable {
+                                val regularContacts = WeDatabaseApi.getFriends() + WeDatabaseApi.getGroups()
+                                val listKey = if (useWhitelist) "transfer_whitelist" else "transfer_blacklist"
+                                val currentList = WePrefs.getStringSetOrDef(listKey, emptySet())
+
+                                showComposeDialog(context) {
+                                    ContactsSelector(
+                                        title = if (useWhitelist) "选择白名单" else "选择黑名单",
+                                        contacts = regularContacts,
+                                        initialSelectedWxIds = currentList,
+                                        onDismiss = onDismiss
+                                    ) {
+                                        WePrefs.putStringSet(listKey, it)
+                                        showToast("已保存 ${it.size} 个联系人, 重启微信以使更改生效")
+                                        onDismiss()
+                                    }
+                                }
+                            }
+                        )
+                        ListItem(
+                            headlineContent = { Text("接收后通知") },
+                            supportingContent = { Text("使用 Toast 显示收到的金额") },
+                            trailingContent = { Switch(checked = notification, onCheckedChange = { notification = it }) },
+                            modifier = Modifier.clickable { notification = !notification }
+                        )
+                        ListItem(
+                            headlineContent = { Text("接收自己的转账") },
+                            supportingContent = { Text("默认情况下不接收自己发出的转账") },
+                            trailingContent = { Switch(checked = self, onCheckedChange = { self = it }) },
+                            modifier = Modifier.clickable { self = !self }
+                        )
+                        TextField(
+                            value = delayInput,
+                            onValueChange = { delayInput = it.filter { c -> c.isDigit() }.take(5) },
+                            label = { Text("基础延迟 (毫秒)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
+                        )
+                        TextField(
+                            value = randomRangeInput,
+                            onValueChange = { randomRangeInput = it.filter { c -> c.isDigit() }.take(5) },
+                            label = { Text("随机偏移范围 (±毫秒)") },
+                            supportingText = { Text("在基础延迟上增加随机偏移, 防止风控, 设 0 固定使用基础延迟") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
+                        )
+                        TextField(
+                            value = autoReplyInput,
+                            onValueChange = { autoReplyInput = it.trim() },
+                            label = { Text("接收后自动回复") },
+                            supportingText = { Text($$"自动接收转账后向来源对话发送自定义消息, 留空禁用\n(使用占位符 $amount 表示金额)") },
+                            singleLine = true,
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        WePrefs.putBool("transfer_notification", notification)
+                        WePrefs.putBool("transfer_self", self)
+                        WePrefs.putString("transfer_delay_custom", delayInput.ifBlank { "300" })
+                        WePrefs.putBool("transfer_use_whitelist", useWhitelist)
+                        WePrefs.putString("transfer_delay_random_range", randomRangeInput.ifBlank { "300" })
+                        WePrefs.putString("transfer_auto_reply", autoReplyInput)
+                        onDismiss()
+                    }) { Text("确定") }
+                },
+                dismissButton = { TextButton(onDismiss) { Text("取消") } }
+            )
+        }
+    }
+
+    override fun onBeforeToggle(newState: Boolean, context: Context): Boolean {
+        if (newState) {
+            showComposeDialog(context) {
+                AlertDialogContent(
+                    title = { Text(text = "警告") },
+                    text = { Text(text = "此功能可能导致账号异常, 确定要启用吗?") },
+                    confirmButton = {
+                        Button(onClick = {
+                            applyToggle(true)
+                            onDismiss()
+                        }) { Text("确定") }
+                    },
+                    dismissButton = { TextButton(onDismiss) { Text("取消") } }
+                )
+            }
+            return false
+        }
+
+        return true
     }
 
     private val ctorNetSceneTransferOperation by dexConstructor {

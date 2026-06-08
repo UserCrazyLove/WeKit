@@ -5,6 +5,7 @@ import dev.ujhhgtg.wekit.loader.abc.IHookBridge
 import dev.ujhhgtg.wekit.loader.abc.ILoaderService
 import dev.ujhhgtg.wekit.loader.startup.UnifiedEntryPoint
 import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.wekit.utils.reflection.ClassLoaderRegistry
 
 object ModuleLoader {
 
@@ -23,6 +24,8 @@ object ModuleLoader {
     ) {
         if (isInitialized) return
         isInitialized = true
+
+        ClassLoaderRegistry.hookConstructors()
 
         WeLogger.i(TAG, "loading in entry point ${loaderService.entryPointName}")
         UnifiedEntryPoint.entry(loaderService, hookBridge, hostClassLoader, modulePath)
