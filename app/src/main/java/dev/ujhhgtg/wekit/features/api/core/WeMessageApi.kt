@@ -499,28 +499,25 @@ object WeMessageApi : ApiFeature(), IResolveDex {
      * Revoke (unsend) a message by its msgSvrId.
      * Uses WeChat's MsgInfoStorage revoke method found via DexKit.
      */
-    fun revokeMsg(msgSvrId: Long): Boolean {
+    fun revokeMsg(msgInfo: MessageInfo): Boolean {
         return try {
-            WeLogger.i(TAG, "revoking message: $msgSvrId")
-            val storage = WeServiceApi.messageInfoStorage
-            val getMsgMethod = storage.reflekt()
-                .firstMethod { parameters(Long::class.java) }
-                .self
-            val f8 = getMsgMethod.invoke(storage, msgSvrId)
-            val netScene = ctorNetSceneRevokeMsg.newInstance(f8, "你撤回了一条消息", "")
+            WeLogger.i(TAG, "revoking message: msgSvrId=${msgInfo.serverId}")
+            val netScene = ctorNetSceneRevokeMsg.newInstance(msgInfo.instance, "你撤回了一条消息", "")
             WeNetSceneApi.sendNetScene(netScene)
             true
         } catch (e: Exception) { WeLogger.e(TAG, "revokeMsg failed", e); false }
     }
 
+    fun getMsgInfoInstanceBySvrId(serverId: Long): Any {
+        val getMsgMethod = WeServiceApi.messageInfoStorage.reflekt()
+            .firstMethod { parameters(Long::class.java) }
+        return getMsgMethod.invoke(serverId)!!
+    }
+
     fun sendQuoteMsg(talker: String, msgSvrId: Long, content: String): Boolean {
         return try {
             WeLogger.i(TAG, "sending quote message to $talker")
-            val storage = WeServiceApi.messageInfoStorage
-            val getMsgMethod = storage.reflekt()
-                .firstMethod { parameters(Long::class.java) }
-                .self
-            val f8 = getMsgMethod.invoke(storage, msgSvrId)!!
+            val f8 = getMsgInfoInstanceBySvrId(msgSvrId)
             val mi = MessageInfo(f8)
             val appmsg = JSONObject()
             appmsg.put("type", 57)

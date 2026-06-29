@@ -60,6 +60,7 @@ import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.reflekt.utils.createInstance
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
+import dev.ujhhgtg.wekit.features.api.ui.WeCurrentConversationApi
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.preferences.WePrefs
@@ -74,10 +75,8 @@ import dev.ujhhgtg.wekit.ui.utils.iterable
 import dev.ujhhgtg.wekit.ui.utils.setLifecycleOwner
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.now
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.lang.ref.WeakReference
-import kotlin.time.Duration.Companion.seconds
 
 @SuppressLint("StaticFieldLeak")
 @Feature(name = "聊天工具栏", categories = ["聊天"], description = "在输入框上方添加工具栏 (点击配置)")
@@ -119,7 +118,7 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
         }
     }
 
-    private var lastToolListUpdateTime = now()
+    private var lastConversation: String? = null
 
     private data class MenuItem(
         val name: String,
@@ -139,35 +138,28 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
         methodAppPanelInitAppGrid.apply {
             hookBefore {
                 val appPanel = args[0] as LinearLayout
-
-                val measurer = methodAppPanelOnMeasure.method.declaringClass
-                    .createInstance(appPanel)
-                // onMeasure() would be called again with actual width & height anyways,
-                // so as long as those numbers aren't too small, it's probably fine
-                // currently no unwanted side effects are observed, except that the pager's
-                // indicator disappears
+                val measurer = methodAppPanelOnMeasure.method.declaringClass.createInstance(appPanel)
                 methodAppPanelOnMeasure.method.invoke(measurer, 1440, 1200)
             }
 
             hookAfter {
-                val now = now()
-                if (now - lastToolListUpdateTime < 2.seconds) return@hookAfter
+                val currentConv = WeCurrentConversationApi.value
+
+                if (currentConv == lastConversation && toolsState.value.isNotEmpty()) return@hookAfter
 
                 val tools = mutableListOf<Pair<String, MenuItem>>()
 
                 val appPanel = args[0] as LinearLayout
                 val grids = appPanel.findViewByChildIndexes<ViewGroup>(0, 0, 0)!!
                     .children.map { view -> view as GridView }
+
                 grids.forEach { grid ->
                     val onClickListener = grid.reflekt()
-                        .firstField {
-                            type = AdapterView.OnItemClickListener::class
-                        }.get()!! as AdapterView.OnItemClickListener
+                        .firstField { type = AdapterView.OnItemClickListener::class }.get()!! as AdapterView.OnItemClickListener
                     val onLongClickListener = grid.reflekt()
-                        .firstField {
-                            type = AdapterView.OnItemLongClickListener::class
-                        }.get()!! as AdapterView.OnItemLongClickListener
+                        .firstField { type = AdapterView.OnItemLongClickListener::class }.get()!! as AdapterView.OnItemLongClickListener
                     val listAdapter = grid.adapter
+
                     listAdapter.iterable(grid).forEachIndexed { index, itemView ->
                         val name = (itemView.tag.reflekt()
                             .firstField { type = TextView::class }
@@ -185,11 +177,9 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
                     }
                 }
 
-                WeLogger.d(TAG, "populated tool list with ${tools.size} items")
+                WeLogger.d(TAG, "populated tool list with ${tools.size} items for conversation: $currentConv")
                 toolsState.value = tools
-
-                // rate limit this since this method is called REALLY frequently
-                lastToolListUpdateTime = now()
+                lastConversation = currentConv
             }
         }
 
@@ -217,6 +207,7 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
                             DisposableEffect(Unit) {
                                 onDispose {
                                     toolsState.value = emptyList()
+                                    lastConversation = null
                                 }
                             }
 
@@ -231,7 +222,6 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
                                 val orderList = itemsOrder.split(",").filter { it.isNotEmpty() }
                                 val list = mutableListOf<Pair<String, () -> Unit>>()
 
-                                // 预置快捷项
                                 list.add("相册" to {
                                     firstTool.onClickListener.onItemClick(firstTool.gridView.get()!!, firstTool.itemView.get()!!, 0, 0)
                                 })
@@ -239,7 +229,6 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
                                     firstTool.onLongClickListener.onItemLongClick(null, null, 0, 0)
                                 })
 
-                                // 遍历并装载动态项
                                 tools.forEach { (name, menuItem) ->
                                     if (name in NAME_TO_ICON_MAP && name != "相册" && name != "系统拍摄") {
                                         val gridView = menuItem.gridView.get() ?: return@forEach
@@ -279,6 +268,7 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
 
     override fun onDisable() {
         toolsState.value = emptyList()
+        lastConversation = null
     }
 
     override fun onClick(context: Context) {

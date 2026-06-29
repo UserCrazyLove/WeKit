@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.os.Process
 import dev.ujhhgtg.comptime.nameOf
+import dev.ujhhgtg.wekit.utils.android.getSystemService
 
 object TargetProcesses {
 
@@ -43,7 +44,7 @@ object TargetProcesses {
         do {
             runCatching {
                 val ctx = HostInfo.application
-                val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                val am = ctx.getSystemService<ActivityManager>()
                 val myPid = Process.myPid()
 
                 val name = am.runningAppProcesses?.find { it?.pid == myPid }?.processName

@@ -8,6 +8,7 @@ import android.os.Process
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.BuildConfig
 import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.wekit.utils.android.getSystemService
 import dev.ujhhgtg.wekit.utils.polyfills.getThreadId
 import java.io.BufferedReader
 import java.io.FileReader
@@ -165,17 +166,14 @@ object CrashInfoCollector {
             sb.append("Total PSS: ").append(memoryInfo.totalPss).append(" KB\n")
 
             // 系统内存信息
-            val activityManager =
-                context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager?
-            if (activityManager != null) {
-                val systemMemInfo = ActivityManager.MemoryInfo()
-                activityManager.getMemoryInfo(systemMemInfo)
-                sb.append("System Available Memory: ").append(systemMemInfo.availMem / 1024 / 1024)
-                    .append(" MB\n")
-                sb.append("System Total Memory: ").append(systemMemInfo.totalMem / 1024 / 1024)
-                    .append(" MB\n")
-                sb.append("System Low Memory: ").append(systemMemInfo.lowMemory).append("\n")
-            }
+            val activityManager = context.getSystemService<ActivityManager>()
+            val systemMemInfo = ActivityManager.MemoryInfo()
+            activityManager.getMemoryInfo(systemMemInfo)
+            sb.append("System Available Memory: ").append(systemMemInfo.availMem / 1024 / 1024)
+                .append(" MB\n")
+            sb.append("System Total Memory: ").append(systemMemInfo.totalMem / 1024 / 1024)
+                .append(" MB\n")
+            sb.append("System Low Memory: ").append(systemMemInfo.lowMemory).append("\n")
         } catch (e: Exception) {
             sb.append("Failed to collect memory info: ").append(e.message).append("\n")
         }
@@ -260,12 +258,10 @@ object CrashInfoCollector {
         try {
             val pid = Process.myPid()
             val activityManager =
-                context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager?
-            if (activityManager != null) {
-                for (processInfo in activityManager.runningAppProcesses) {
-                    if (processInfo.pid == pid) {
-                        return processInfo.processName
-                    }
+                context.getSystemService<ActivityManager>()
+            for (processInfo in activityManager.runningAppProcesses) {
+                if (processInfo.pid == pid) {
+                    return processInfo.processName
                 }
             }
 

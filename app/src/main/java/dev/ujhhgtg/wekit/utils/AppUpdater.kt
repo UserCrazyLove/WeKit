@@ -11,6 +11,7 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import dev.ujhhgtg.wekit.BuildConfig
 import dev.ujhhgtg.wekit.constants.PackageNames
+import dev.ujhhgtg.wekit.utils.android.getSystemService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -157,7 +158,7 @@ object AppUpdater {
             setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
             setMimeType("application/vnd.android.package-archive")
         }
-        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val dm = context.getSystemService<DownloadManager>()
         return dm.enqueue(request)
     }
 
@@ -172,7 +173,7 @@ object AppUpdater {
 
                         context.unregisterReceiver(this)
 
-                        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                        val dm = context.getSystemService<DownloadManager>()
                         val query = DownloadManager.Query().setFilterById(downloadId)
                         val cursor = dm.query(query)
 
@@ -204,7 +205,7 @@ object AppUpdater {
 
                 cont.invokeOnCancellation {
                     runCatching { context.unregisterReceiver(receiver) }
-                    val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                    val dm = context.getSystemService<DownloadManager>()
                     dm.remove(downloadId)
                 }
             }

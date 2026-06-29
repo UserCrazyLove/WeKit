@@ -10,8 +10,11 @@ inline val Context.isDarkMode
 
 inline val Context.androidUserId: Long
     get() {
-        val userManager =
-            getSystemService(Context.USER_SERVICE) as UserManager
+        val userManager = getSystemService<UserManager>()
         val userHandle = Process.myUserHandle()
         return userManager.getSerialNumberForUser(userHandle)
     }
+
+// it is the caller's responsibility to ensure the class is a service
+inline fun <reified T : Any> Context.getSystemService(): T =
+    getSystemService(T::class.java)!!

@@ -51,6 +51,7 @@ import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.wekit.utils.android.getSystemService
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.invokeOriginal
 import dev.ujhhgtg.wekit.utils.reflection.int
@@ -120,8 +121,7 @@ object EmojiGameControl : ClickableFeature(), IResolveDex {
 
     private fun ensureSensorAlive(delayMs: Long) {
         if (sensorManager == null) {
-            sensorManager = HostInfo.application
-                .getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            sensorManager = HostInfo.application.getSystemService<SensorManager>()
             val accel = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
             if (accel != null) {
                 sensorManager?.registerListener(accelListener, accel, SensorManager.SENSOR_DELAY_NORMAL)

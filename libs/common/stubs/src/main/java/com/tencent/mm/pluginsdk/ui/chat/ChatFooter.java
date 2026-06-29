@@ -28,4 +28,8 @@ public class ChatFooter extends FrameLayout {
     public long getLastQuoteMsgId() {
         throw new RuntimeException("Stub!");
     }
+
+    public void setMode(int i16) {
+        throw new RuntimeException("Stub!");
+    }
 }

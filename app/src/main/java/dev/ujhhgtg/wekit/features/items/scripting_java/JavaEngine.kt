@@ -21,6 +21,7 @@ import dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.features.api.core.WeGroupApi
 import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.features.api.core.WePaymentApi
+import dev.ujhhgtg.wekit.features.api.core.models.MessageInfo
 import dev.ujhhgtg.wekit.features.api.core.models.MessageType
 import dev.ujhhgtg.wekit.features.api.net.WeNetSceneApi
 import dev.ujhhgtg.wekit.features.api.ui.WeCurrentConversationApi
@@ -29,6 +30,7 @@ import dev.ujhhgtg.wekit.utils.AudioUtils
 import dev.ujhhgtg.wekit.utils.BshSnapshotDecompiler
 import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.wekit.utils.android.getSystemService
 import dev.ujhhgtg.wekit.utils.android.getTopMostActivity
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
@@ -460,7 +462,7 @@ object JavaEngine {
                 val title = it[0] as String
                 val content = it[1] as String
                 val context = HostInfo.application
-                val nm = context.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as NotificationManager
+                val nm = context.getSystemService<NotificationManager>()
                 val channelId = "script_${plugin.name}"
                 val channel = NotificationChannel(
                     channelId,
@@ -891,7 +893,7 @@ object JavaEngine {
             ) {
                 val msgSvrId = it[0] as Long
                 return@BshMethod runCatchingBsh("revokeMsg") {
-                    WeMessageApi.revokeMsg(msgSvrId)
+                    WeMessageApi.revokeMsg(MessageInfo(WeMessageApi.getMsgInfoInstanceBySvrId(msgSvrId)))
                 }.getOrDefault(false)
             })
 

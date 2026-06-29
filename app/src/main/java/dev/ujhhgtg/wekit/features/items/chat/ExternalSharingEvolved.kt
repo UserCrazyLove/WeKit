@@ -12,6 +12,7 @@ import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.wekit.utils.android.getSystemService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -32,14 +33,14 @@ object ExternalSharingEvolved : ClickableFeature() {
 
     override fun onClick(context: Context) {
         val ctx = HostInfo.application
-        val sm = ctx.getSystemService(ShortcutManager::class.java)
+        val sm = ctx.getSystemService<ShortcutManager>()
 
-        sm.removeDynamicShortcuts(listOf("contact_id_123"))
+        sm.removeAllDynamicShortcuts()
     }
 
     private fun updateSharingShortcuts() {
         val ctx = HostInfo.application
-        val sm = ctx.getSystemService(ShortcutManager::class.java)
+        val sm = ctx.getSystemService<ShortcutManager>()
 
         // 获取消息互动量排名前 3 的好友
         val topFriends = WeDatabaseApi.getFriendsOrderedByMessageCount(3)
