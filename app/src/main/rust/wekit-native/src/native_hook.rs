@@ -7,31 +7,32 @@
 //!
 //! WeChat ships heavy native anti-tamper logic that bypasses every ART/Java
 //! hook: it reads `/proc/self/maps`, walks the dynamic link-map via
-//! `dl_iterate_phdr`, probes the module install paths with `stat`/`access`,
-//! checks `TracerPid`, and increasingly issues these through raw `syscall(2)`
-//! to dodge the libc wrappers entirely.
+//! `dl_iterate_phdr`, checks `TracerPid`, and increasingly issues these through
+//! raw `syscall(2)` to dodge the libc wrappers entirely.
 //!
-//! These hooks close that gap. They are installed lazily (on feature enable)
-//! against libc/libdl symbols using the LSPosed native API's inline-hook
-//! primitive handed to us in [`native_init`], and can be removed again on
-//! feature disable via the paired `unhook_func`.
+//! These hooks close that gap. They are installed once, early, from
+//! [`native_init`] (gated by an on-disk flag the Java feature writes), using
+//! the LSPosed native API's inline-hook primitive.
 //!
-//! Strategy per vector:
+//! Strategy per vector — all content-sanitizing, never path-blocking:
 //! - `openat`/`open`/`open64` + `syscall(SYS_openat)`: for sensitive procfs
 //!   files (`maps`/`smaps`/`status`) we serve a sanitized copy from an
-//!   anonymous `memfd` — offending lines dropped, `TracerPid` zeroed — so all
-//!   downstream `read`/`pread`/`mmap`/`fgets`/`lseek` transparently see clean
-//!   content. For module install paths we return `ENOENT`.
-//! - `stat`/`lstat`/`faccessat`/`access` + `syscall(SYS_faccessat)`: `ENOENT`
-//!   for module paths.
-//! - `readlinkat` + `syscall(SYS_readlinkat)`: `ENOENT` when the path or the
-//!   resolved target names the module.
+//!   anonymous `memfd` — lines naming injected libraries dropped, `TracerPid`
+//!   zeroed — so all downstream `read`/`pread`/`mmap`/`fgets`/`lseek`
+//!   transparently see clean content. Every other path falls through
+//!   untouched.
 //! - `dl_iterate_phdr`: the caller's callback is wrapped so injected libraries
 //!   are skipped from link-map enumeration.
 //! - `__system_property_get`: spoof `ro.debuggable`/`ro.secure`, blank magisk
 //!   props.
 //! - `ptrace` + `syscall(SYS_ptrace)`: `PTRACE_TRACEME` returns success without
 //!   attaching, defeating simple self-anti-debug.
+//!
+//! We deliberately do NOT return `ENOENT` for module install paths from
+//! `open`/`stat`/`access`: the module is loaded *into* the WeChat process from
+//! its own APK, so blinding the process to those paths breaks the module's own
+//! dynamic linking (e.g. `libmmkv.so`). Hiding the loaded libraries from the
+//! memory maps is the meaningful, non-destructive native detection defense.
 
 use crate::{loge, logi, logw};
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
@@ -249,20 +250,16 @@ unsafe extern "C" fn my_openat(
 ) -> c_int {
     unsafe {
         let orig: OpenatFn = transmute(ORIG_OPENAT.load(Ordering::Acquire));
-        if ENABLED.load(Ordering::Acquire) && !path.is_null() {
-            let bytes = CStr::from_ptr(path).to_bytes();
-            if proc_sensitive(bytes) {
-                let real = orig(dirfd, path, flags, mode);
-                if real >= 0 {
-                    let fd = build_sanitized(real);
-                    return if fd >= 0 { fd } else { -1 };
-                }
-                return real;
+        if ENABLED.load(Ordering::Acquire)
+            && !path.is_null()
+            && proc_sensitive(CStr::from_ptr(path).to_bytes())
+        {
+            let real = orig(dirfd, path, flags, mode);
+            if real >= 0 {
+                let fd = build_sanitized(real);
+                return if fd >= 0 { fd } else { -1 };
             }
-            if blob_is_hidden(bytes) {
-                set_enoent();
-                return -1;
-            }
+            return real;
         }
         orig(dirfd, path, flags, mode)
     }
@@ -271,20 +268,16 @@ unsafe extern "C" fn my_openat(
 unsafe extern "C" fn my_open(path: *const c_char, flags: c_int, mode: c_int) -> c_int {
     unsafe {
         let orig: OpenFn = transmute(ORIG_OPEN.load(Ordering::Acquire));
-        if ENABLED.load(Ordering::Acquire) && !path.is_null() {
-            let bytes = CStr::from_ptr(path).to_bytes();
-            if proc_sensitive(bytes) {
-                let real = orig(path, flags, mode);
-                if real >= 0 {
-                    let fd = build_sanitized(real);
-                    return if fd >= 0 { fd } else { -1 };
-                }
-                return real;
+        if ENABLED.load(Ordering::Acquire)
+            && !path.is_null()
+            && proc_sensitive(CStr::from_ptr(path).to_bytes())
+        {
+            let real = orig(path, flags, mode);
+            if real >= 0 {
+                let fd = build_sanitized(real);
+                return if fd >= 0 { fd } else { -1 };
             }
-            if blob_is_hidden(bytes) {
-                set_enoent();
-                return -1;
-            }
+            return real;
         }
         orig(path, flags, mode)
     }
@@ -303,100 +296,8 @@ unsafe extern "C" fn my_open64(path: *const c_char, flags: c_int, mode: c_int) -
                 }
                 return real;
             }
-            if blob_is_hidden(bytes) {
-                set_enoent();
-                return -1;
-            }
         }
         orig(path, flags, mode)
-    }
-}
-
-unsafe extern "C" fn my_faccessat(
-    dirfd: c_int,
-    path: *const c_char,
-    mode: c_int,
-    flags: c_int,
-) -> c_int {
-    unsafe {
-        let orig: FaccessatFn = transmute(ORIG_FACCESSAT.load(Ordering::Acquire));
-        if ENABLED.load(Ordering::Acquire)
-            && !path.is_null()
-            && blob_is_hidden(CStr::from_ptr(path).to_bytes())
-        {
-            set_enoent();
-            return -1;
-        }
-        orig(dirfd, path, mode, flags)
-    }
-}
-
-unsafe extern "C" fn my_access(path: *const c_char, mode: c_int) -> c_int {
-    unsafe {
-        let orig: AccessFn = transmute(ORIG_ACCESS.load(Ordering::Acquire));
-        if ENABLED.load(Ordering::Acquire)
-            && !path.is_null()
-            && blob_is_hidden(CStr::from_ptr(path).to_bytes())
-        {
-            set_enoent();
-            return -1;
-        }
-        orig(path, mode)
-    }
-}
-
-unsafe extern "C" fn my_stat(path: *const c_char, st: *mut c_void) -> c_int {
-    unsafe {
-        let orig: StatFn = transmute(ORIG_STAT.load(Ordering::Acquire));
-        if ENABLED.load(Ordering::Acquire)
-            && !path.is_null()
-            && blob_is_hidden(CStr::from_ptr(path).to_bytes())
-        {
-            set_enoent();
-            return -1;
-        }
-        orig(path, st)
-    }
-}
-
-unsafe extern "C" fn my_lstat(path: *const c_char, st: *mut c_void) -> c_int {
-    unsafe {
-        let orig: StatFn = transmute(ORIG_LSTAT.load(Ordering::Acquire));
-        if ENABLED.load(Ordering::Acquire)
-            && !path.is_null()
-            && blob_is_hidden(CStr::from_ptr(path).to_bytes())
-        {
-            set_enoent();
-            return -1;
-        }
-        orig(path, st)
-    }
-}
-
-unsafe extern "C" fn my_readlinkat(
-    dirfd: c_int,
-    path: *const c_char,
-    buf: *mut c_char,
-    bufsiz: size_t,
-) -> ssize_t {
-    unsafe {
-        let orig: ReadlinkatFn = transmute(ORIG_READLINKAT.load(Ordering::Acquire));
-        if ENABLED.load(Ordering::Acquire) && !path.is_null() {
-            let p = CStr::from_ptr(path).to_bytes();
-            if blob_is_hidden(p) {
-                set_enoent();
-                return -1;
-            }
-        }
-        let n = orig(dirfd, path, buf, bufsiz);
-        if ENABLED.load(Ordering::Acquire) && n > 0 {
-            let slice = std::slice::from_raw_parts(buf as *const u8, n as usize);
-            if blob_is_hidden(slice) {
-                set_enoent();
-                return -1;
-            }
-        }
-        n
     }
 }
 
@@ -509,22 +410,6 @@ unsafe extern "C" fn my_syscall(
                         }
                         return real as c_long;
                     }
-                    if blob_is_hidden(bytes) {
-                        set_enoent();
-                        return -1;
-                    }
-                }
-            } else if num == libc::SYS_faccessat {
-                let path = b as *const c_char;
-                if !path.is_null() && blob_is_hidden(CStr::from_ptr(path).to_bytes()) {
-                    set_enoent();
-                    return -1;
-                }
-            } else if num == libc::SYS_readlinkat {
-                let path = b as *const c_char;
-                if !path.is_null() && blob_is_hidden(CStr::from_ptr(path).to_bytes()) {
-                    set_enoent();
-                    return -1;
                 }
             } else if num == libc::SYS_ptrace {
                 if a as i64 == libc::PTRACE_TRACEME as i64 {
@@ -556,7 +441,9 @@ unsafe fn hook_one(
         let mut b: *mut c_void = ptr::null_mut();
         hook(target, replace, &mut b);
         if b.is_null() {
-            loge!("anti-detect: hook failed: {:?}", sym);
+            // Common & harmless: aliased symbols (e.g. open64 == open in bionic)
+            // resolve to an already-hooked address, so the second hook no-ops.
+            logw!("anti-detect: hook skipped (no backup): {:?}", sym);
             return;
         }
         backup.store(b as usize, Ordering::Release);
@@ -609,41 +496,6 @@ fn install_hooks() -> bool {
             c"open64",
             my_open64 as *mut c_void,
             &ORIG_OPEN64,
-            &mut st.targets,
-        );
-        hook_one(
-            hook,
-            c"faccessat",
-            my_faccessat as *mut c_void,
-            &ORIG_FACCESSAT,
-            &mut st.targets,
-        );
-        hook_one(
-            hook,
-            c"access",
-            my_access as *mut c_void,
-            &ORIG_ACCESS,
-            &mut st.targets,
-        );
-        hook_one(
-            hook,
-            c"stat",
-            my_stat as *mut c_void,
-            &ORIG_STAT,
-            &mut st.targets,
-        );
-        hook_one(
-            hook,
-            c"lstat",
-            my_lstat as *mut c_void,
-            &ORIG_LSTAT,
-            &mut st.targets,
-        );
-        hook_one(
-            hook,
-            c"readlinkat",
-            my_readlinkat as *mut c_void,
-            &ORIG_READLINKAT,
             &mut st.targets,
         );
         hook_one(

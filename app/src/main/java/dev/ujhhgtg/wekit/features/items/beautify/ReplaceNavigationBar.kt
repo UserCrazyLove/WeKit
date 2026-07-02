@@ -66,6 +66,7 @@ import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.DefaultColumn
 import dev.ujhhgtg.wekit.ui.content.FloatingBottomBar
+import dev.ujhhgtg.wekit.ui.content.FloatingBottomBarDefaults
 import dev.ujhhgtg.wekit.ui.content.FloatingBottomBarItem
 import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.AppTheme
@@ -190,7 +191,7 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
 
                             val backgroundColor = if (isSystemInDarkTheme()) Color(0xFF191919) else Color(0xFFF7F7F7)
                             val activeColor = MaterialTheme.colorScheme.primary
-                            val inactiveColor = MaterialTheme.colorScheme.outline
+                            val inactiveColor = if (isSystemInDarkTheme()) Color(0xFF999999) else Color(0xFF181818)
 
                             if (!useFloating) {
                                 val offset by scrollOffsetState
@@ -292,7 +293,13 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
                                         onSelected = { navigateToTab(it) },
                                         backdrop = rememberLayerBackdrop(),
                                         tabsCount = ICONS.size,
-                                        isBlurEnabled = useBackdrop
+                                        isBlurEnabled = useBackdrop,
+                                        colors = FloatingBottomBarDefaults.colors(
+                                            containerColor = backgroundColor,
+                                            indicatorColor = activeColor,
+                                            contentColor = inactiveColor,
+                                            activeContentColor = activeColor
+                                        )
                                     ) {
                                         ICONS.forEachIndexed { index, item ->
                                             val isSelected = index == selectedIndex

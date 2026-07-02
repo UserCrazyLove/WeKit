@@ -36,7 +36,7 @@ object RemoveArticleAds : SwitchFeature(), IWePacketInterceptor {
             val adJsonStr = field2.optString("3") ?: return null
 
             // 解析广告JSON
-            val adJson = JSONObject(adJsonStr)
+            val adJson = runCatching { JSONObject(adJsonStr) }.getOrElse { return null }
             // 清空广告字段
             var modified = false
 

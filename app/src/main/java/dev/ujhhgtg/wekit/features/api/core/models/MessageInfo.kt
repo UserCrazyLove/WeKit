@@ -2,8 +2,10 @@
 
 package dev.ujhhgtg.wekit.features.api.core.models
 
+import android.content.ContentValues
 import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.features.api.core.WeApi
+import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.utils.serialization.DefaultJson
 import dev.ujhhgtg.wekit.utils.serialization.NativeXmlParser
 import dev.ujhhgtg.wekit.utils.serialization.asInt
@@ -13,10 +15,10 @@ import dev.ujhhgtg.wekit.utils.serialization.get
 import dev.ujhhgtg.wekit.utils.serialization.getByPath
 import dev.ujhhgtg.wekit.utils.strings.isGroupChatWxId
 import dev.ujhhgtg.wekit.utils.strings.stripWxId
-import java.nio.ByteBuffer
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonArray
+import java.nio.ByteBuffer
 
 class MessageInfo(val instance: Any) {
 
@@ -286,6 +288,10 @@ class MessageInfo(val instance: Any) {
                 .replace("\n", "")
                 .replace("\t", "")
                 .replace("<?xml version=\"1.0\"?>", "") + "</msg>"
+        }
+
+        fun fromContentValues(contentValues: ContentValues): MessageInfo {
+            return MessageInfo(WeMessageApi.convertMsgInfoFromContentValues(contentValues, true))
         }
     }
 }

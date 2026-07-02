@@ -26,6 +26,7 @@ import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.features.api.core.WeDatabaseListenerApi
 import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
+import dev.ujhhgtg.wekit.features.api.core.models.MessageInfo
 import dev.ujhhgtg.wekit.features.api.core.models.MessageType
 import dev.ujhhgtg.wekit.features.api.net.WeNetSceneApi
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
@@ -193,9 +194,10 @@ object AutoOpenRedPackets : ClickableFeature(), WeDatabaseListenerApi.IInsertLis
 
     private fun handleRedPacket(values: ContentValues) {
         try {
-            if (values.getAsInteger("isSend") == 1 && !packetSelf) return
+            val msgInfo = MessageInfo.fromContentValues(values)
+            if (msgInfo.isSelfSender && !packetSelf) return
 
-            val talker = values.getAsString("talker") ?: ""
+            val talker = msgInfo.talker
 
             if (packetUseWhitelist) {
                 if (talker !in packetWhitelist) return
@@ -203,7 +205,14 @@ object AutoOpenRedPackets : ClickableFeature(), WeDatabaseListenerApi.IInsertLis
                 if (talker in packetBlacklist) return
             }
 
-            val content = values.getAsString("content") ?: return
+            val content = msgInfo.content
+            val isGroupChat = msgInfo.isInGroupChat
+            val sender = msgInfo.sender
+
+            if (isGroupChat && !RedPacketGroupMemberFilter.shouldGrab(talker, sender)) {
+                WeLogger.i(TAG, "skipping packet from $sender in $talker per group member filter")
+                return
+            }
 
             var xmlContent = content
             if (!content.startsWith("<") && content.contains(":")) {
@@ -336,6 +345,13 @@ object AutoOpenRedPackets : ClickableFeature(), WeDatabaseListenerApi.IInsertLis
                                         onDismiss()
                                     }
                                 }
+                            }
+                        )
+                        ListItem(
+                            headlineContent = { Text("群聊指定群成员") },
+                            supportingContent = { Text("为指定群聊按发送成员设置黑/白名单") },
+                            modifier = Modifier.clickable {
+                                RedPacketGroupMemberFilter.showManagerDialog(context)
                             }
                         )
                         ListItem(

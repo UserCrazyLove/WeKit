@@ -183,6 +183,13 @@ fun FloatingBottomBar(
 
     var currentIndex by remember(selectedIndex) { mutableIntStateOf(selectedIndex()) }
 
+    // Late-bound reference to the animation so canDrag can read its live value.
+    class DampedDragAnimationHolder {
+        var instance: DampedDragAnimation? = null
+    }
+
+    val holder = remember { DampedDragAnimationHolder() }
+
     val dampedDragAnimation = remember(animationScope, tabsCount, density, isLtr) {
         DampedDragAnimation(
             animationScope = animationScope,
@@ -191,6 +198,23 @@ fun FloatingBottomBar(
             visibilityThreshold = 0.001f,
             initialScale = 1f,
             pressedScale = 78f / 56f,
+            // Only start a drag when the touch lands within the tab strip bounds. Without this
+            // guard the pill swallows a tap on the already-selected tab as a zero-distance drag,
+            // so the tap never falls through to FloatingBottomBarItem.onClick (double-tap-home).
+            canDrag = { offset ->
+                val anim = holder.instance ?: return@DampedDragAnimation true
+                if (tabWidthPx == 0f) return@DampedDragAnimation false
+
+                val currentValue = anim.value
+                val indicatorX = currentValue * tabWidthPx
+                val padding = with(density) { 4.dp.toPx() }
+                val globalTouchX = if (isLtr) {
+                    padding + indicatorX + offset.x
+                } else {
+                    totalWidthPx - padding - tabWidthPx - indicatorX + offset.x
+                }
+                globalTouchX in 0f..totalWidthPx
+            },
             onDragStarted = {},
             onDragStopped = {
                 val targetIndex = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
@@ -211,7 +235,7 @@ fun FloatingBottomBar(
                     }
                 }
             }
-        )
+        ).also { holder.instance = it }
     }
 
     LaunchedEffect(selectedIndex) {
