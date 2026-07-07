@@ -49,7 +49,7 @@ object ForwardMessagesToMoments : SwitchFeature(), WeChatMessageContextMenuApi.I
 
                         MessageType.VIDEO -> {
                             val mp4Path = WeServiceApi.getVideoMp4PathFromMsgInfo(msgInfo)
-                            WeMomentsApi.sendVideoInUi(activity, mp4Path)
+                            WeMomentsApi.sendVideoInUi(activity, mp4Path, mp4Path)
                         }
 
                         else -> {}
