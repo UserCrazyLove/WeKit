@@ -63,8 +63,6 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
     private const val SNS_VIDEO_SCENE_FINISH_REMAINING = 36
     private const val FALLBACK_VIDEO_CREATE_TIME = 1
     private const val MIME_IMAGE_JPEG = "image/jpeg"
-    private const val MESSAGE_IMAGE_DOWNLOAD_FAILED = "图片下载失败或超时"
-    private const val MESSAGE_CACHED_IMAGE_NOT_FOUND = "未找到本地缓存的图片"
 
     data class ActionResult(
         val success: Boolean,
@@ -539,7 +537,7 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
 
     private val classGalleryLivePhotoMediaItem by dexClass {
         matcher {
-            className = "com.tencent.mm.plugin.gallery.model.GalleryItem\$LivePhotoMediaItem"
+            className = $$"com.tencent.mm.plugin.gallery.model.GalleryItem$LivePhotoMediaItem"
         }
     }
 
@@ -1352,32 +1350,32 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
     ): ActionResult {
         return try {
             if (!content.hasLivePhoto) {
-                return ActionResult(success = false, sent = false, message = "这条朋友圈不包含实况图片")
+                return ActionResult(success = false, sent = false, message = "这条朋友圈不包含实况图片!")
             }
 
             ensureImagePathsCached(content.mediaList, content.nativeMediaList)
-                ?: return ActionResult(success = false, sent = false, message = MESSAGE_IMAGE_DOWNLOAD_FAILED)
+                ?: return ActionResult(success = false, sent = false, message = "图片下载失败或超时!")
             if (!ensureLivePhotoVideosCached(content)) {
-                return ActionResult(success = false, sent = false, message = "实况视频下载失败或超时，请稍后重试")
+                return ActionResult(success = false, sent = false, message = "实况视频下载失败或超时, 请稍后重试!")
             }
 
             val resolved = resolveMediaItems(content)
-                ?: return ActionResult(success = false, sent = false, message = MESSAGE_CACHED_IMAGE_NOT_FOUND)
+                ?: return ActionResult(success = false, sent = false, message = "未找到本地缓存的图片!")
             if (resolved.degradedLivePhotos) {
-                return ActionResult(success = false, sent = false, message = "实况视频未缓存，请先播放一次后再试")
+                return ActionResult(success = false, sent = false, message = "实况未缓存, 请先播放一次后再试!")
             }
 
             val editorMedia = prepareGalleryEditorMedia(activity, resolved.items)
-                ?: return ActionResult(success = false, sent = false, message = "实况图片保存到相册失败")
+                ?: return ActionResult(success = false, sent = false, message = "实况保存到相册失败!")
 
             if (openMomentMixedMediaEditorFromAlbumResult(activity, text, editorMedia, source)) {
-                ActionResult(success = true, sent = false, message = "已打开实况图片编辑界面")
+                ActionResult(success = true, sent = false, message = "")
             } else {
-                ActionResult(success = false, sent = false, message = "实况图片自动选择失败")
+                ActionResult(success = false, sent = false, message = "实况图片自动选择失败!")
             }
         } catch (e: Exception) {
             WeLogger.e(TAG, "openMomentLivePhotoEditorFromAlbumResult failed", e)
-            ActionResult(success = false, sent = false, message = e.message ?: "打开实况图片编辑界面异常", error = e)
+            ActionResult(success = false, sent = false, message = e.message ?: "打开实况图片编辑界面异常!", error = e)
         }
     }
 
@@ -2114,15 +2112,15 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
                     else ActionResult(success = false, sent = false, message = "转发失败")
                 }
 
-                1, 54 -> { // 图片 / 实况相册: 先确保图片缓存到位, 再转发
+                1, 54 -> { // 图片 / 实况
                     if (content.hasLivePhoto) {
                         // 实况相册: 先把静态封面图缓存到位 (实况视频缺失时会自动退化为静态图)
                         ensureImagePathsCached(content.mediaList, content.nativeMediaList)
-                            ?: return ActionResult(success = false, sent = false, message = MESSAGE_IMAGE_DOWNLOAD_FAILED)
+                            ?: return ActionResult(success = false, sent = false, message = "图片下载失败或超时")
                         return quickForward(content)
                     }
                     val paths = ensureImagePathsCached(content.mediaList, content.nativeMediaList)
-                        ?: return ActionResult(success = false, sent = false, message = MESSAGE_IMAGE_DOWNLOAD_FAILED)
+                        ?: return ActionResult(success = false, sent = false, message = "图片下载失败或超时")
                     val ok = postTextAndImages(text, paths)
                     if (ok) ActionResult(success = true, sent = true, message = "已加入发送队列")
                     else ActionResult(success = false, sent = false, message = "转发失败")
@@ -2143,7 +2141,7 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
                 1, 54 -> { // 图片 / 实况相册 (可混合静态图与实况图片)
                     if (content.hasLivePhoto) {
                         val resolved = resolveMediaItems(content)
-                            ?: return ActionResult(success = false, sent = false, message = MESSAGE_CACHED_IMAGE_NOT_FOUND)
+                            ?: return ActionResult(success = false, sent = false, message = "未找到本地缓存的图片")
                         val sent = postTextAndMixedMedia(text, resolved.items)
                         if (sent && resolved.degradedLivePhotos) {
                             return ActionResult(success = true, sent = true, message = "已加入发送队列 (部分实况视频未下载, 已按静态图转发)")
@@ -2151,7 +2149,7 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
                         sent
                     } else {
                         val paths = prepareImagePaths(content.mediaList, content.nativeMediaList)
-                            ?: return ActionResult(success = false, sent = false, message = MESSAGE_CACHED_IMAGE_NOT_FOUND)
+                            ?: return ActionResult(success = false, sent = false, message = "未找到本地缓存的图片")
                         postTextAndImages(text, paths)
                     }
                 }
