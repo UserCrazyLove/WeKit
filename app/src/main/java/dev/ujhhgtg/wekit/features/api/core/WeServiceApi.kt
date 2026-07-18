@@ -228,9 +228,11 @@ object WeServiceApi : ApiFeature(), IResolveDex {
     }
 
     val videoPathFeatureService
-        get() = getServiceByClass(methodVideoPathFeatureServiceRestoreMp4Path
+        get() = getServiceByClass(
+            methodVideoPathFeatureServiceRestoreMp4Path
                 .method.declaringClass
-                .interfaces[0])
+                .interfaces[0]
+        )
 
     fun getVideoMp4PathFromMsgInfo(msgInfo: MessageInfo): String {
         return methodVideoPathFeatureServiceRestoreMp4Path.method.invoke(

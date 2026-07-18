@@ -92,6 +92,7 @@ class OpenAiResponsesClient(
                     finishReason = "stop"
                     usage = parseUsage(event["response"]?.jsonObject?.get("usage")?.jsonObject) ?: usage
                 }
+
                 "response.failed", "error" -> {
                     emit(LlmStreamEvent.Failed(LlmException("Responses stream error: $data")))
                     return@flow

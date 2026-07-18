@@ -293,9 +293,11 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
 
     @Composable
     private fun ColumnScope.LoadingView() {
-        Box(Modifier
-            .fillMaxWidth()
-            .weight(1f), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f), contentAlignment = Alignment.Center
+        ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 CircularWavyProgressIndicator()
                 Spacer(Modifier.height(8.dp))
@@ -306,18 +308,22 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
 
     @Composable
     private fun ColumnScope.EmptyState() {
-        Box(Modifier
-            .fillMaxWidth()
-            .weight(1f), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f), contentAlignment = Alignment.Center
+        ) {
             Text("未找到灰度测试类", style = MaterialTheme.typography.bodyMedium)
         }
     }
 
     @Composable
     private fun ColumnScope.NoMatchState() {
-        Box(Modifier
-            .fillMaxWidth()
-            .weight(1f), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f), contentAlignment = Alignment.Center
+        ) {
             Text("未找到匹配的类", style = MaterialTheme.typography.bodyMedium)
         }
     }
@@ -348,9 +354,11 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
 
     @Composable
     private fun ColumnScope.FlagList(classNames: List<String>) {
-        LazyColumn(Modifier
-            .fillMaxWidth()
-            .weight(1f)) {
+        LazyColumn(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
             items(classNames) { className ->
                 FlagListItem(className = className)
             }

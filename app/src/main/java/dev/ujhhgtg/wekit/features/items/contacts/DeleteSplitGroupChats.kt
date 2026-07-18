@@ -104,18 +104,18 @@ object DeleteSplitGroupChats : ClickableFeature() {
         // Ordered from most-derived to most-foundational so foreign-key-like dependencies
         // (message → conversation → contact) are cleaned up outward-in.
         val steps: List<Pair<String, () -> Int>> = listOf(
-            "message"         to { WeDatabaseApi.delete("message",        "talker=?",         arrayOf(fakeGroupId)) },
-            "ImgInfo2"        to { WeDatabaseApi.delete("ImgInfo2",       "msgTalker=?",      arrayOf(fakeGroupId)) },
-            "MsgQuote"        to { WeDatabaseApi.delete("MsgQuote",       "quotedMsgTalker=?",arrayOf(fakeGroupId)) },
-            "GroupBindApp"    to { WeDatabaseApi.delete("GroupBindApp",   "chatRoomName=?",   arrayOf(fakeGroupId)) },
-            "GroupSolitatire" to { WeDatabaseApi.delete("GroupSolitatire","username=?",       arrayOf(fakeGroupId)) },
-            "GroupTodo"       to { WeDatabaseApi.delete("GroupTodo",      "roomname=?",       arrayOf(fakeGroupId)) },
-            "GroupTools"      to { WeDatabaseApi.delete("GroupTools",     "chatroomname=?",   arrayOf(fakeGroupId)) },
-            "chatroom"        to { WeDatabaseApi.delete("chatroom",       "chatroomname=?",   arrayOf(fakeGroupId)) },
-            "rconversation"   to { WeDatabaseApi.delete("rconversation",  "username=?",       arrayOf(fakeGroupId)) },
-            "img_flag"        to { WeDatabaseApi.delete("img_flag",       "username=?",       arrayOf(fakeGroupId)) },
+            "message" to { WeDatabaseApi.delete("message", "talker=?", arrayOf(fakeGroupId)) },
+            "ImgInfo2" to { WeDatabaseApi.delete("ImgInfo2", "msgTalker=?", arrayOf(fakeGroupId)) },
+            "MsgQuote" to { WeDatabaseApi.delete("MsgQuote", "quotedMsgTalker=?", arrayOf(fakeGroupId)) },
+            "GroupBindApp" to { WeDatabaseApi.delete("GroupBindApp", "chatRoomName=?", arrayOf(fakeGroupId)) },
+            "GroupSolitatire" to { WeDatabaseApi.delete("GroupSolitatire", "username=?", arrayOf(fakeGroupId)) },
+            "GroupTodo" to { WeDatabaseApi.delete("GroupTodo", "roomname=?", arrayOf(fakeGroupId)) },
+            "GroupTools" to { WeDatabaseApi.delete("GroupTools", "chatroomname=?", arrayOf(fakeGroupId)) },
+            "chatroom" to { WeDatabaseApi.delete("chatroom", "chatroomname=?", arrayOf(fakeGroupId)) },
+            "rconversation" to { WeDatabaseApi.delete("rconversation", "username=?", arrayOf(fakeGroupId)) },
+            "img_flag" to { WeDatabaseApi.delete("img_flag", "username=?", arrayOf(fakeGroupId)) },
             // rcontact last: it's the identity anchor that WeChat caches most aggressively
-            "rcontact"        to { WeDatabaseApi.delete("rcontact",       "username=?",       arrayOf(fakeGroupId)) },
+            "rcontact" to { WeDatabaseApi.delete("rcontact", "username=?", arrayOf(fakeGroupId)) },
         )
 
         var anyError = false

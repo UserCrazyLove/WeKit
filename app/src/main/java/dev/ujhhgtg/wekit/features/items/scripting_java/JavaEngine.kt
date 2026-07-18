@@ -86,9 +86,11 @@ object JavaEngine {
                             "showBlackToast" -> {
                                 param.isIntercepted = true; param.returnValue = false
                             }
+
                             "getBlackFriends" -> {
                                 param.isIntercepted = true; param.returnValue = arrayListOf<Any>()
                             }
+
                             "checkAuthorization" -> {
                                 param.isIntercepted = true; param.returnValue = true
                             }
@@ -127,8 +129,10 @@ object JavaEngine {
         }
     }
 
-    fun executeAllOnHandleMsg(scripts: Map<String, JavaPlugin>,
-                              msgBean: MsgInfoBean) {
+    fun executeAllOnHandleMsg(
+        scripts: Map<String, JavaPlugin>,
+        msgBean: MsgInfoBean
+    ) {
         scripts.values.forEach { plugin ->
             try {
                 val bshMethod = plugin.interpreter.nameSpace.getMethod(
@@ -145,9 +149,11 @@ object JavaEngine {
         }
     }
 
-    fun executeAllOnClickSendBtn(scripts: Map<String, JavaPlugin>,
-                                 param: XC_MethodHook.MethodHookParam,
-                                 text: String) {
+    fun executeAllOnClickSendBtn(
+        scripts: Map<String, JavaPlugin>,
+        param: XC_MethodHook.MethodHookParam,
+        text: String
+    ) {
         scripts.values.forEach { plugin ->
             try {
                 val bshMethod = plugin.interpreter.nameSpace.getMethod(
@@ -167,11 +173,12 @@ object JavaEngine {
         }
     }
 
-    fun executeAllOnMemberChange(scripts: Map<String, JavaPlugin>,
-                                 type: String,
-                                 groupWxid: String,
-                                 userWxid: String,
-                                 userName: String
+    fun executeAllOnMemberChange(
+        scripts: Map<String, JavaPlugin>,
+        type: String,
+        groupWxid: String,
+        userWxid: String,
+        userName: String
     ) {
         scripts.values.forEach { plugin ->
             try {
@@ -278,815 +285,887 @@ object JavaEngine {
 
             // ===== Audio Utils =====
 
-            setMethod(BshMethod(
-                "mp3ToSilk", arrayOf(BString, BString, int)
-            ) {
-                AudioUtils.anyToSilk(it[0] as String, it[1] as String)
-            })
-            setMethod(BshMethod(
-                "mp3ToSilk", arrayOf(BString, BString)
-            ) {
-                AudioUtils.anyToSilk(it[0] as String, it[1] as String)
-            })
-            setMethod(BshMethod(
-                "wavToSilk", arrayOf(BString, BString)
-            ) {
-                AudioUtils.anyToSilk(it[0] as String, it[1] as String)
-            })
-            setMethod(BshMethod(
-                "silkToMp3", arrayOf(BString, BString, int)
-            ) {
-                val pcm = it[1] as String + ".tmp"
-                AudioUtils.silkToPcm(it[0] as String, pcm)
-                AudioUtils.pcmToMp3(pcm, it[1] as String)
-                runCatching { pcm.asPath.deleteExisting() }
-            })
-            setMethod(BshMethod(
-                "silkToMp3", arrayOf(BString, BString)
-            ) {
-                val pcm = it[1] as String + ".tmp"
-                AudioUtils.silkToPcm(it[0] as String, pcm)
-                AudioUtils.pcmToMp3(pcm, it[1] as String)
-                runCatching { pcm.asPath.deleteExisting() }
-            })
-            setMethod(BshMethod(
-                "getDuration", arrayOf(BString)
-            ) { return@BshMethod AudioUtils.getDurationMs(it[0] as String) })
+            setMethod(
+                BshMethod(
+                    "mp3ToSilk", arrayOf(BString, BString, int)
+                ) {
+                    AudioUtils.anyToSilk(it[0] as String, it[1] as String)
+                })
+            setMethod(
+                BshMethod(
+                    "mp3ToSilk", arrayOf(BString, BString)
+                ) {
+                    AudioUtils.anyToSilk(it[0] as String, it[1] as String)
+                })
+            setMethod(
+                BshMethod(
+                    "wavToSilk", arrayOf(BString, BString)
+                ) {
+                    AudioUtils.anyToSilk(it[0] as String, it[1] as String)
+                })
+            setMethod(
+                BshMethod(
+                    "silkToMp3", arrayOf(BString, BString, int)
+                ) {
+                    val pcm = it[1] as String + ".tmp"
+                    AudioUtils.silkToPcm(it[0] as String, pcm)
+                    AudioUtils.pcmToMp3(pcm, it[1] as String)
+                    runCatching { pcm.asPath.deleteExisting() }
+                })
+            setMethod(
+                BshMethod(
+                    "silkToMp3", arrayOf(BString, BString)
+                ) {
+                    val pcm = it[1] as String + ".tmp"
+                    AudioUtils.silkToPcm(it[0] as String, pcm)
+                    AudioUtils.pcmToMp3(pcm, it[1] as String)
+                    runCatching { pcm.asPath.deleteExisting() }
+                })
+            setMethod(
+                BshMethod(
+                    "getDuration", arrayOf(BString)
+                ) { return@BshMethod AudioUtils.getDurationMs(it[0] as String) })
 
             // ===== Config: Properties-based persistent storage =====
 
             // getString(key, default) — already ported, kept for compatibility
-            setMethod(BshMethod(
-                "getString", arrayOf(BString, BString)
-            ) {
-                val key = it[0] as String
-                val def = it[1] as String
-                return@BshMethod loadConfig(plugin).getProperty(key) ?: def
-            })
+            setMethod(
+                BshMethod(
+                    "getString", arrayOf(BString, BString)
+                ) {
+                    val key = it[0] as String
+                    val def = it[1] as String
+                    return@BshMethod loadConfig(plugin).getProperty(key) ?: def
+                })
 
             // putString(key, value)
-            setMethod(BshMethod(
-                "putString", arrayOf(BString, BString)
-            ) {
-                val key = it[0] as String
-                val value = it[1] as String
-                val props = loadConfig(plugin)
-                props.setProperty(key, value)
-                saveConfig(plugin, props)
-            })
+            setMethod(
+                BshMethod(
+                    "putString", arrayOf(BString, BString)
+                ) {
+                    val key = it[0] as String
+                    val value = it[1] as String
+                    val props = loadConfig(plugin)
+                    props.setProperty(key, value)
+                    saveConfig(plugin, props)
+                })
 
             // getStringSet(key, defaultSet)
-            setMethod(BshMethod(
-                "getStringSet", arrayOf(BString, Set::class.java)
-            ) {
-                val key = it[0] as String
-                val def = it[1] as Set<*>
-                val raw = loadConfig(plugin).getProperty(key) ?: return@BshMethod def
-                return@BshMethod try {
-                    val arr = JSONArray(raw)
-                    val result = LinkedHashSet<String>(arr.length())
-                    for (i in 0 until arr.length()) {
-                        result.add(arr.optString(i))
+            setMethod(
+                BshMethod(
+                    "getStringSet", arrayOf(BString, Set::class.java)
+                ) {
+                    val key = it[0] as String
+                    val def = it[1] as Set<*>
+                    val raw = loadConfig(plugin).getProperty(key) ?: return@BshMethod def
+                    return@BshMethod try {
+                        val arr = JSONArray(raw)
+                        val result = LinkedHashSet<String>(arr.length())
+                        for (i in 0 until arr.length()) {
+                            result.add(arr.optString(i))
+                        }
+                        result
+                    } catch (_: Exception) {
+                        def
                     }
-                    result
-                } catch (_: Exception) {
-                    def
-                }
-            })
+                })
 
             // putStringSet(key, set)
-            setMethod(BshMethod(
-                "putStringSet", arrayOf(BString, Set::class.java)
-            ) {
-                val key = it[0] as String
-                val value = it[1] as Set<*>
-                val props = loadConfig(plugin)
-                props.setProperty(key, JSONArray(value.toList()).toString())
-                saveConfig(plugin, props)
-            })
+            setMethod(
+                BshMethod(
+                    "putStringSet", arrayOf(BString, Set::class.java)
+                ) {
+                    val key = it[0] as String
+                    val value = it[1] as Set<*>
+                    val props = loadConfig(plugin)
+                    props.setProperty(key, JSONArray(value.toList()).toString())
+                    saveConfig(plugin, props)
+                })
 
             // getBoolean(key, default)
-            setMethod(BshMethod(
-                "getBoolean", arrayOf(BString, java.lang.Boolean.TYPE)
-            ) {
-                val key = it[0] as String
-                val def = it[1] as Boolean
-                val raw = loadConfig(plugin).getProperty(key)
-                if (raw != null) {
-                    when (raw) {
-                        "true" -> return@BshMethod true
-                        "false" -> return@BshMethod false
+            setMethod(
+                BshMethod(
+                    "getBoolean", arrayOf(BString, java.lang.Boolean.TYPE)
+                ) {
+                    val key = it[0] as String
+                    val def = it[1] as Boolean
+                    val raw = loadConfig(plugin).getProperty(key)
+                    if (raw != null) {
+                        when (raw) {
+                            "true" -> return@BshMethod true
+                            "false" -> return@BshMethod false
+                        }
                     }
-                }
-                return@BshMethod def
-            })
+                    return@BshMethod def
+                })
 
             // putBoolean(key, value)
-            setMethod(BshMethod(
-                "putBoolean", arrayOf(BString, java.lang.Boolean.TYPE)
-            ) {
-                val key = it[0] as String
-                val value = it[1] as Boolean
-                val props = loadConfig(plugin)
-                props.setProperty(key, value.toString())
-                saveConfig(plugin, props)
-            })
+            setMethod(
+                BshMethod(
+                    "putBoolean", arrayOf(BString, java.lang.Boolean.TYPE)
+                ) {
+                    val key = it[0] as String
+                    val value = it[1] as Boolean
+                    val props = loadConfig(plugin)
+                    props.setProperty(key, value.toString())
+                    saveConfig(plugin, props)
+                })
 
             // getInt(key, default)
-            setMethod(BshMethod(
-                "getInt", arrayOf(BString, int)
-            ) {
-                val key = it[0] as String
-                val def = it[1] as Int
-                val raw = loadConfig(plugin).getProperty(key)
-                if (raw != null) {
-                    raw.toIntOrNull()?.let { value -> return@BshMethod value }
-                }
-                return@BshMethod def
-            })
+            setMethod(
+                BshMethod(
+                    "getInt", arrayOf(BString, int)
+                ) {
+                    val key = it[0] as String
+                    val def = it[1] as Int
+                    val raw = loadConfig(plugin).getProperty(key)
+                    if (raw != null) {
+                        raw.toIntOrNull()?.let { value -> return@BshMethod value }
+                    }
+                    return@BshMethod def
+                })
 
             // putInt(key, value)
-            setMethod(BshMethod(
-                "putInt", arrayOf(BString, int)
-            ) {
-                val key = it[0] as String
-                val value = it[1] as Int
-                val props = loadConfig(plugin)
-                props.setProperty(key, value.toString())
-                saveConfig(plugin, props)
-            })
+            setMethod(
+                BshMethod(
+                    "putInt", arrayOf(BString, int)
+                ) {
+                    val key = it[0] as String
+                    val value = it[1] as Int
+                    val props = loadConfig(plugin)
+                    props.setProperty(key, value.toString())
+                    saveConfig(plugin, props)
+                })
 
             // getFloat(key, default)
-            setMethod(BshMethod(
-                "getFloat", arrayOf(BString, float)
-            ) {
-                val key = it[0] as String
-                val def = it[1] as Float
-                val raw = loadConfig(plugin).getProperty(key)
-                if (raw != null) {
-                    raw.toFloatOrNull()?.let { value -> return@BshMethod value }
-                }
-                return@BshMethod def
-            })
+            setMethod(
+                BshMethod(
+                    "getFloat", arrayOf(BString, float)
+                ) {
+                    val key = it[0] as String
+                    val def = it[1] as Float
+                    val raw = loadConfig(plugin).getProperty(key)
+                    if (raw != null) {
+                        raw.toFloatOrNull()?.let { value -> return@BshMethod value }
+                    }
+                    return@BshMethod def
+                })
 
             // putFloat(key, value)
-            setMethod(BshMethod(
-                "putFloat", arrayOf(BString, float)
-            ) {
-                val key = it[0] as String
-                val value = it[1] as Float
-                val props = loadConfig(plugin)
-                props.setProperty(key, value.toString())
-                saveConfig(plugin, props)
-            })
+            setMethod(
+                BshMethod(
+                    "putFloat", arrayOf(BString, float)
+                ) {
+                    val key = it[0] as String
+                    val value = it[1] as Float
+                    val props = loadConfig(plugin)
+                    props.setProperty(key, value.toString())
+                    saveConfig(plugin, props)
+                })
 
             // getLong(key, default)
-            setMethod(BshMethod(
-                "getLong", arrayOf(BString, long)
-            ) { args ->
-                val key = args[0] as String
-                val def = args[1] as Long
-                val raw = loadConfig(plugin).getProperty(key)
-                if (raw != null) {
-                    raw.toLongOrNull()?.let { return@BshMethod it }
-                }
-                return@BshMethod def
-            })
+            setMethod(
+                BshMethod(
+                    "getLong", arrayOf(BString, long)
+                ) { args ->
+                    val key = args[0] as String
+                    val def = args[1] as Long
+                    val raw = loadConfig(plugin).getProperty(key)
+                    if (raw != null) {
+                        raw.toLongOrNull()?.let { return@BshMethod it }
+                    }
+                    return@BshMethod def
+                })
 
             // putLong(key, value)
-            setMethod(BshMethod(
-                "putLong", arrayOf(BString, long)
-            ) {
-                val key = it[0] as String
-                val value = it[1] as Long
-                val props = loadConfig(plugin)
-                props.setProperty(key, value.toString())
-                saveConfig(plugin, props)
-            })
+            setMethod(
+                BshMethod(
+                    "putLong", arrayOf(BString, long)
+                ) {
+                    val key = it[0] as String
+                    val value = it[1] as Long
+                    val props = loadConfig(plugin)
+                    props.setProperty(key, value.toString())
+                    saveConfig(plugin, props)
+                })
 
             // ===== Logging =====
 
             // log(message) — logs via WeLogger with plugin prefix
-            setMethod(BshMethod(
-                "log", arrayOf(Any::class.java)
-            ) {
-                val message = it[0]
-                WeLogger.i(plugin.name, message.toString())
-            })
+            setMethod(
+                BshMethod(
+                    "log", arrayOf(Any::class.java)
+                ) {
+                    val message = it[0]
+                    WeLogger.i(plugin.name, message.toString())
+                })
 
             // ===== Toast =====
 
             // toast(message) — shows a short Android Toast
-            setMethod(BshMethod(
-                "toast", arrayOf(BString)
-            ) {
-                Handler(Looper.getMainLooper()).post {
-                    val message = it[0] as String
-                    showToast("${plugin.name}: $message")
-                }
-            })
+            setMethod(
+                BshMethod(
+                    "toast", arrayOf(BString)
+                ) {
+                    Handler(Looper.getMainLooper()).post {
+                        val message = it[0] as String
+                        showToast("${plugin.name}: $message")
+                    }
+                })
 
             // ===== Notification =====
 
             // notify(title, content) — posts a system notification
-            setMethod(BshMethod(
-                "notify", arrayOf(BString, BString)
-            ) {
-                val title = it[0] as String
-                val content = it[1] as String
-                val context = HostInfo.application
-                val nm = context.getSystemService<NotificationManager>()
-                val channelId = "script_${plugin.name}"
-                val channel = NotificationChannel(
-                    channelId,
-                    "Script: ${plugin.info.name}",
-                    NotificationManager.IMPORTANCE_DEFAULT
-                )
-                nm.createNotificationChannel(channel)
-                val notification = android.app.Notification.Builder(context, channelId)
-                    .setContentTitle(title)
-                    .setContentText(content)
-                    .setSmallIcon(android.R.drawable.ic_dialog_info)
-                    .setAutoCancel(true)
-                    .build()
-                nm.notify(channelId.hashCode(), notification)
-            })
+            setMethod(
+                BshMethod(
+                    "notify", arrayOf(BString, BString)
+                ) {
+                    val title = it[0] as String
+                    val content = it[1] as String
+                    val context = HostInfo.application
+                    val nm = context.getSystemService<NotificationManager>()
+                    val channelId = "script_${plugin.name}"
+                    val channel = NotificationChannel(
+                        channelId,
+                        "Script: ${plugin.info.name}",
+                        NotificationManager.IMPORTANCE_DEFAULT
+                    )
+                    nm.createNotificationChannel(channel)
+                    val notification = android.app.Notification.Builder(context, channelId)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setSmallIcon(android.R.drawable.ic_dialog_info)
+                        .setAutoCancel(true)
+                        .build()
+                    nm.notify(channelId.hashCode(), notification)
+                })
 
             // ===== Scripting =====
 
             // eval(source) — evaluates a BeanShell expression/script
-            setMethod(BshMethod(
-                "eval", arrayOf(BString)
-            ) {
-                val source = it[0] as String
-                return@BshMethod plugin.interpreter.eval(source)
-            })
+            setMethod(
+                BshMethod(
+                    "eval", arrayOf(BString)
+                ) {
+                    val source = it[0] as String
+                    return@BshMethod plugin.interpreter.eval(source)
+                })
 
             // loadJava(path) — sources a Java file into the interpreter
-            setMethod(BshMethod(
-                "loadJava", arrayOf(BString)
-            ) {
-                val path = plugin.dir / it[0] as String
-                val absPath = if (path.exists()) {
-                    path.absolutePathString()
-                } else {
-                    val withExt = path.parent / "${path.nameWithoutExtension}.java"
-                    if (withExt.exists()) {
-                        withExt.absolutePathString()
+            setMethod(
+                BshMethod(
+                    "loadJava", arrayOf(BString)
+                ) {
+                    val path = plugin.dir / it[0] as String
+                    val absPath = if (path.exists()) {
+                        path.absolutePathString()
                     } else {
-                        WeLogger.e(TAG, "failed to load java; ${path.absolutePathString()} and ${withExt.absolutePathString()} does not exist")
-                        return@BshMethod null
+                        val withExt = path.parent / "${path.nameWithoutExtension}.java"
+                        if (withExt.exists()) {
+                            withExt.absolutePathString()
+                        } else {
+                            WeLogger.e(TAG, "failed to load java; ${path.absolutePathString()} and ${withExt.absolutePathString()} does not exist")
+                            return@BshMethod null
+                        }
                     }
-                }
-                plugin.interpreter.source(absPath)
-            })
+                    plugin.interpreter.source(absPath)
+                })
 
             // loadJar(path) — adds a JAR to the interpreter's classloader
-            setMethod(BshMethod(
-                "loadJar", arrayOf(BString)
-            ) {
-                val path = it[0] as String
-                val resolved = if (File(path).isAbsolute) {
-                    File(path).canonicalPath
-                } else {
-                    plugin.dir.resolve(path).toFile().canonicalPath
-                }
-                val url = File(resolved).toURI().toURL()
-                val loader = java.net.URLClassLoader(arrayOf(url), ClassLoaders.MODULE)
-                plugin.interpreter.classManager.addClassLoader(loader)
-            })
+            setMethod(
+                BshMethod(
+                    "loadJar", arrayOf(BString)
+                ) {
+                    val path = it[0] as String
+                    val resolved = if (File(path).isAbsolute) {
+                        File(path).canonicalPath
+                    } else {
+                        plugin.dir.resolve(path).toFile().canonicalPath
+                    }
+                    val url = File(resolved).toURI().toURL()
+                    val loader = java.net.URLClassLoader(arrayOf(url), ClassLoaders.MODULE)
+                    plugin.interpreter.classManager.addClassLoader(loader)
+                })
 
             // loadDex(path) — loads a DEX into the interpreter's classloader
-            setMethod(BshMethod(
-                "loadDex", arrayOf(BString)
-            ) {
-                val path = it[0] as String
-                val resolved = if (File(path).isAbsolute) {
-                    File(path).canonicalPath
-                } else {
-                    plugin.dir.resolve(path).toFile().canonicalPath
-                }
-                val dexBytes = Files.readAllBytes(File(resolved).toPath())
-                val loader = InMemoryDexClassLoader(
-                    ByteBuffer.wrap(dexBytes), ClassLoaders.MODULE
-                )
-                plugin.interpreter.classManager.addClassLoader(loader)
-            })
+            setMethod(
+                BshMethod(
+                    "loadDex", arrayOf(BString)
+                ) {
+                    val path = it[0] as String
+                    val resolved = if (File(path).isAbsolute) {
+                        File(path).canonicalPath
+                    } else {
+                        plugin.dir.resolve(path).toFile().canonicalPath
+                    }
+                    val dexBytes = Files.readAllBytes(File(resolved).toPath())
+                    val loader = InMemoryDexClassLoader(
+                        ByteBuffer.wrap(dexBytes), ClassLoaders.MODULE
+                    )
+                    plugin.interpreter.classManager.addClassLoader(loader)
+                })
 
             // compileSnapshot(path) — compiles a BeanShell script to a .bshs snapshot
-            setMethod(BshMethod(
-                "compileSnapshot", arrayOf(BString)
-            ) {
-                val path = it[0] as String
-                val resolved = if (File(path).isAbsolute) {
-                    File(path).canonicalPath
-                } else {
-                    plugin.dir.resolve(path).toFile().canonicalPath
-                }
-                val snapPath = "$resolved.bshs"
-                runCatching {
-                    plugin.interpreter.compileSnapshot(resolved, snapPath, null)
-                }.onFailure { e ->
-                    WeLogger.e(TAG, "compileSnapshot failed for $resolved", e)
-                }
-            })
+            setMethod(
+                BshMethod(
+                    "compileSnapshot", arrayOf(BString)
+                ) {
+                    val path = it[0] as String
+                    val resolved = if (File(path).isAbsolute) {
+                        File(path).canonicalPath
+                    } else {
+                        plugin.dir.resolve(path).toFile().canonicalPath
+                    }
+                    val snapPath = "$resolved.bshs"
+                    runCatching {
+                        plugin.interpreter.compileSnapshot(resolved, snapPath, null)
+                    }.onFailure { e ->
+                        WeLogger.e(TAG, "compileSnapshot failed for $resolved", e)
+                    }
+                })
 
             // evalSnapshot(path) — evaluates a compiled .bshs snapshot
-            setMethod(BshMethod(
-                "evalSnapshot", arrayOf(BString)
-            ) {
-                val path = it[0] as String
-                val resolved = if (File(path).isAbsolute) {
-                    File(path).canonicalPath
-                } else {
-                    plugin.dir.resolve(path).toFile().canonicalPath
-                }
-                val snapFile = File("$resolved.bshs")
-                if (!snapFile.exists()) {
-                    WeLogger.w(TAG, "snapshot not found: ${snapFile.canonicalPath}")
-                    return@BshMethod null
-                }
-                runCatching {
-                    plugin.interpreter.evalSnapshot(snapFile.absolutePath, BshSnapshotDecompiler.SECRET_KEY)
-                }.onFailure { e ->
-                    WeLogger.e(TAG, "evalSnapshot failed for $resolved", e)
-                }.getOrNull()
-            })
+            setMethod(
+                BshMethod(
+                    "evalSnapshot", arrayOf(BString)
+                ) {
+                    val path = it[0] as String
+                    val resolved = if (File(path).isAbsolute) {
+                        File(path).canonicalPath
+                    } else {
+                        plugin.dir.resolve(path).toFile().canonicalPath
+                    }
+                    val snapFile = File("$resolved.bshs")
+                    if (!snapFile.exists()) {
+                        WeLogger.w(TAG, "snapshot not found: ${snapFile.canonicalPath}")
+                        return@BshMethod null
+                    }
+                    runCatching {
+                        plugin.interpreter.evalSnapshot(snapFile.absolutePath, BshSnapshotDecompiler.SECRET_KEY)
+                    }.onFailure { e ->
+                        WeLogger.e(TAG, "evalSnapshot failed for $resolved", e)
+                    }.getOrNull()
+                })
 
             // ===== WeChat Identity =====
 
             // getTargetTalker() → current chat partner wxid
             // WAuxv original: hooks ChatFooter.setUserName | WeKit: same approach via XposedBridge
-            setMethod(BshMethod(
-                "getTargetTalker", emptyArray<Class<*>>()
-            ) {
-                return@BshMethod WeCurrentConversationApi.value
-            })
+            setMethod(
+                BshMethod(
+                    "getTargetTalker", emptyArray<Class<*>>()
+                ) {
+                    return@BshMethod WeCurrentConversationApi.value
+                })
 
             // setTargetTalker(wxId) → manually set current talker
-            setMethod(BshMethod(
-                "setTargetTalker", arrayOf(BString)
-            ) {
-                WeCurrentConversationApi.value = it[0] as String
-            })
+            setMethod(
+                BshMethod(
+                    "setTargetTalker", arrayOf(BString)
+                ) {
+                    WeCurrentConversationApi.value = it[0] as String
+                })
 
             // getLoginWxid() → current logged-in wxid
-            setMethod(BshMethod(
-                "getLoginWxid", emptyArray<Class<*>>()
-            ) {
-                return@BshMethod runCatchingBsh("getLoginWxid") { WeApi.selfWxId }.getOrDefault("")
-            })
+            setMethod(
+                BshMethod(
+                    "getLoginWxid", emptyArray<Class<*>>()
+                ) {
+                    return@BshMethod runCatchingBsh("getLoginWxid") { WeApi.selfWxId }.getOrDefault("")
+                })
 
             // getLoginAlias() → current logged-in custom alias
-            setMethod(BshMethod(
-                "getLoginAlias", emptyArray<Class<*>>()
-            ) {
-                return@BshMethod runCatchingBsh("getLoginAlias") { WeApi.selfCustomWxId }.getOrDefault("")
-            })
+            setMethod(
+                BshMethod(
+                    "getLoginAlias", emptyArray<Class<*>>()
+                ) {
+                    return@BshMethod runCatchingBsh("getLoginAlias") { WeApi.selfCustomWxId }.getOrDefault("")
+                })
 
             // ===== Contacts — Lists =====
 
             // getFriendList() → list of FriendInfo objects
-            setMethod(BshMethod(
-                "getFriendList", emptyArray<Class<*>>()
-            ) {
-                return@BshMethod runCatchingBsh("getFriendList") {
-                    WeDatabaseApi.getFriends().map { FriendInfo(it) }
-                }.getOrDefault(emptyList<Any>())
-            })
+            setMethod(
+                BshMethod(
+                    "getFriendList", emptyArray<Class<*>>()
+                ) {
+                    return@BshMethod runCatchingBsh("getFriendList") {
+                        WeDatabaseApi.getFriends().map { FriendInfo(it) }
+                    }.getOrDefault(emptyList<Any>())
+                })
 
             // getGroupList() → list of GroupInfo objects
-            setMethod(BshMethod(
-                "getGroupList", emptyArray<Class<*>>()
-            ) {
-                return@BshMethod runCatchingBsh("getGroupList") {
-                    WeDatabaseApi.getGroups().map { GroupInfo(it) }
-                }.getOrDefault(emptyList<Any>())
-            })
+            setMethod(
+                BshMethod(
+                    "getGroupList", emptyArray<Class<*>>()
+                ) {
+                    return@BshMethod runCatchingBsh("getGroupList") {
+                        WeDatabaseApi.getGroups().map { GroupInfo(it) }
+                    }.getOrDefault(emptyList<Any>())
+                })
 
             // getOfficialList() → list of FriendInfo objects
-            setMethod(BshMethod(
-                "getOfficialList", emptyArray<Class<*>>()
-            ) {
-                return@BshMethod runCatchingBsh("getOfficialList") {
-                    WeDatabaseApi.getOfficialAccounts().map {
-                        FriendInfo(it.wxId, "", "", it.nickname, 0, "", 0L)
-                    }
-                }.getOrDefault(emptyList<Any>())
-            })
+            setMethod(
+                BshMethod(
+                    "getOfficialList", emptyArray<Class<*>>()
+                ) {
+                    return@BshMethod runCatchingBsh("getOfficialList") {
+                        WeDatabaseApi.getOfficialAccounts().map {
+                            FriendInfo(it.wxId, "", "", it.nickname, 0, "", 0L)
+                        }
+                    }.getOrDefault(emptyList<Any>())
+                })
 
             // getGroupMemberList(groupId) → list of member object
-            setMethod(BshMethod(
-                "getGroupMemberList", arrayOf(BString)
-            ) {
-                val groupId = it[0] as String
-                return@BshMethod runCatchingBsh("getGroupMemberList") {
-                    WeServiceApi.chatroomStorage.reflekt().firstMethod {
-                        parameters(BString)
-                        returnType = List::class
-                    }.invoke(groupId)
-                }.getOrDefault(emptyList<Any>())
-            })
+            setMethod(
+                BshMethod(
+                    "getGroupMemberList", arrayOf(BString)
+                ) {
+                    val groupId = it[0] as String
+                    return@BshMethod runCatchingBsh("getGroupMemberList") {
+                        WeServiceApi.chatroomStorage.reflekt().firstMethod {
+                            parameters(BString)
+                            returnType = List::class
+                        }.invoke(groupId)
+                    }.getOrDefault(emptyList<Any>())
+                })
 
-            setMethod(BshMethod(
-                "getGroupMemberCount", arrayOf(BString)
-            ) {
-                val groupId = it[0] as String
-                return@BshMethod runCatchingBsh("getGroupMemberCount") {
-                    WeDatabaseApi.getGroupMembers(groupId).size
-                }.getOrDefault(emptyList<Any>())
-            })
+            setMethod(
+                BshMethod(
+                    "getGroupMemberCount", arrayOf(BString)
+                ) {
+                    val groupId = it[0] as String
+                    return@BshMethod runCatchingBsh("getGroupMemberCount") {
+                        WeDatabaseApi.getGroupMembers(groupId).size
+                    }.getOrDefault(emptyList<Any>())
+                })
 
             // ===== Contact Detail =====
 
             // getFriendNickName(wxId) → contact's nickname
-            setMethod(BshMethod(
-                "getFriendNickName", arrayOf(BString)
-            ) {
-                val wxId = it[0] as String
-                return@BshMethod runCatchingBsh("getFriendNickName") {
-                    WeDatabaseApi.getFriend(wxId)?.nickname ?: ""
-                }.getOrDefault("")
-            })
+            setMethod(
+                BshMethod(
+                    "getFriendNickName", arrayOf(BString)
+                ) {
+                    val wxId = it[0] as String
+                    return@BshMethod runCatchingBsh("getFriendNickName") {
+                        WeDatabaseApi.getFriend(wxId)?.nickname ?: ""
+                    }.getOrDefault("")
+                })
 
             // getFriendRemarkName(wxId) → contact's remark name
-            setMethod(BshMethod(
-                "getFriendRemarkName", arrayOf(BString)
-            ) {
-                val wxId = it[0] as String
-                return@BshMethod runCatchingBsh("getFriendRemarkName") {
-                    WeDatabaseApi.getFriend(wxId)?.remarkName ?: ""
-                }.getOrDefault("")
-            })
+            setMethod(
+                BshMethod(
+                    "getFriendRemarkName", arrayOf(BString)
+                ) {
+                    val wxId = it[0] as String
+                    return@BshMethod runCatchingBsh("getFriendRemarkName") {
+                        WeDatabaseApi.getFriend(wxId)?.remarkName ?: ""
+                    }.getOrDefault("")
+                })
 
             // getFriendName(wxId) → display name for a user (single param)
-            setMethod(BshMethod(
-                "getFriendName", arrayOf(BString)
-            ) {
-                val wxId = it[0] as String
-                return@BshMethod runCatchingBsh("getFriendName") { WeDatabaseApi.getDisplayName(wxId) }.getOrDefault(wxId)
-            })
+            setMethod(
+                BshMethod(
+                    "getFriendName", arrayOf(BString)
+                ) {
+                    val wxId = it[0] as String
+                    return@BshMethod runCatchingBsh("getFriendName") { WeDatabaseApi.getDisplayName(wxId) }.getOrDefault(wxId)
+                })
 
             // getFriendName(wxId, groupId) → display name within a group
-            setMethod(BshMethod(
-                "getFriendName", arrayOf(BString, BString)
-            ) {
-                val wxId = it[0] as String
-                val groupId = it[1] as String
-                return@BshMethod runCatchingBsh("getFriendName") {
-                    WeDatabaseApi.getGroupMemberDisplayName(groupId, wxId)
-                }.getOrDefault(wxId)
-            })
+            setMethod(
+                BshMethod(
+                    "getFriendName", arrayOf(BString, BString)
+                ) {
+                    val wxId = it[0] as String
+                    val groupId = it[1] as String
+                    return@BshMethod runCatchingBsh("getFriendName") {
+                        WeDatabaseApi.getGroupMemberDisplayName(groupId, wxId)
+                    }.getOrDefault(wxId)
+                })
 
             // getFriendDisplayName(groupId, memberId) → display name within a group
-            setMethod(BshMethod(
-                "getFriendDisplayName", arrayOf(BString, BString)
-            ) {
-                val groupId = it[0] as String
-                val memberId = it[1] as String
-                return@BshMethod runCatchingBsh("getFriendDisplayName") {
-                    WeDatabaseApi.getGroupMemberDisplayName(groupId, memberId)
-                }.getOrDefault(memberId)
-            })
+            setMethod(
+                BshMethod(
+                    "getFriendDisplayName", arrayOf(BString, BString)
+                ) {
+                    val groupId = it[0] as String
+                    val memberId = it[1] as String
+                    return@BshMethod runCatchingBsh("getFriendDisplayName") {
+                        WeDatabaseApi.getGroupMemberDisplayName(groupId, memberId)
+                    }.getOrDefault(memberId)
+                })
 
             // getAvatarUrl(wxId) → contact's avatar CDN URL
-            setMethod(BshMethod(
-                "getAvatarUrl", arrayOf(BString)
-            ) {
-                val wxId = it[0] as String
-                return@BshMethod runCatchingBsh("getAvatarUrl") { WeDatabaseApi.getAvatarUrl(wxId) }.getOrDefault("")
-            })
+            setMethod(
+                BshMethod(
+                    "getAvatarUrl", arrayOf(BString)
+                ) {
+                    val wxId = it[0] as String
+                    return@BshMethod runCatchingBsh("getAvatarUrl") { WeDatabaseApi.getAvatarUrl(wxId) }.getOrDefault("")
+                })
 
             // getAvatarUrl(wxId, big) → 'big' param not supported by WeKit; defaults to same URL
-            setMethod(BshMethod(
-                "getAvatarUrl", arrayOf(BString, java.lang.Boolean.TYPE)
-            ) {
-                val wxId = it[0] as String
-                return@BshMethod runCatchingBsh("getAvatarUrl") { WeDatabaseApi.getAvatarUrl(wxId) }.getOrDefault("")
-            })
+            setMethod(
+                BshMethod(
+                    "getAvatarUrl", arrayOf(BString, java.lang.Boolean.TYPE)
+                ) {
+                    val wxId = it[0] as String
+                    return@BshMethod runCatchingBsh("getAvatarUrl") { WeDatabaseApi.getAvatarUrl(wxId) }.getOrDefault("")
+                })
 
             // getDisplayName(convId) → conversation display name (remark > nickname > convId)
-            setMethod(BshMethod(
-                "getDisplayName", arrayOf(BString)
-            ) {
-                val convId = it[0] as String
-                return@BshMethod runCatchingBsh("getDisplayName") { WeDatabaseApi.getDisplayName(convId) }.getOrDefault(convId)
-            })
+            setMethod(
+                BshMethod(
+                    "getDisplayName", arrayOf(BString)
+                ) {
+                    val convId = it[0] as String
+                    return@BshMethod runCatchingBsh("getDisplayName") { WeDatabaseApi.getDisplayName(convId) }.getOrDefault(convId)
+                })
 
             // ===== Messaging =====
             // WAuxv original: uses NetSceneSendMsg directly via C0452.m1780
             // WeKit: uses methodGetSendMsgObject + methodPostToQueue (same NetSceneQueue, different entry); equivalent behavior
 
             // sendText(toUser, text) → Boolean
-            setMethod(BshMethod(
-                "sendText", arrayOf(BString, BString)
-            ) {
-                val toUser = it[0] as String
-                val text = it[1] as String
-                return@BshMethod runCatchingBsh("sendText") {
-                    WeMessageApi.sendText(toUser, text)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendText", arrayOf(BString, BString)
+                ) {
+                    val toUser = it[0] as String
+                    val text = it[1] as String
+                    return@BshMethod runCatchingBsh("sendText") {
+                        WeMessageApi.sendText(toUser, text)
+                    }.getOrDefault(false)
+                })
 
             // sendText(toUser, text, callback)
-            setMethod(BshMethod(
-                "sendText", arrayOf(BString, BString, Consumer::class.java)
-            ) {
-                val toUser = it[0] as String
-                val text = it[1] as String
-                @Suppress("UNCHECKED_CAST")
-                val cb = it[2] as Consumer<Long?>
-                thread {
-                    runCatching {
+            setMethod(
+                BshMethod(
+                    "sendText", arrayOf(BString, BString, Consumer::class.java)
+                ) {
+                    val toUser = it[0] as String
+                    val text = it[1] as String
+
+                    @Suppress("UNCHECKED_CAST")
+                    val cb = it[2] as Consumer<Long?>
+                    thread {
+                        runCatching {
 //                        val sendMsgObject = WeMessageApi.methodGetSendMsgObject.method.invoke(null) ?: return@thread
-                        val msgObj = WeMessageApi.classNetSceneSendMsg.clazz.createInstance(toUser, text, 1, 0, null)
+                            val msgObj = WeMessageApi.classNetSceneSendMsg.clazz.createInstance(toUser, text, 1, 0, null)
 
-                        val queue = WeNetSceneApi.classMmKernel.clazz.reflekt()
-                            .firstMethod {
-                                returnType = WeNetSceneApi.methodAddNetSceneToQueue.method.declaringClass
-                            }.invokeStatic()!!
+                            val queue = WeNetSceneApi.classMmKernel.clazz.reflekt()
+                                .firstMethod {
+                                    returnType = WeNetSceneApi.methodAddNetSceneToQueue.method.declaringClass
+                                }.invokeStatic()!!
 
-                        val getDispatcherMethod = queue.javaClass.methods.first { method ->
-                            method.parameterCount == 0 &&
-                            method.returnType.isInterface &&
-                            method.returnType.name.startsWith("com.tencent.mm.")
-                        }
-                        val dispatcher = getDispatcherMethod.invoke(queue)
+                            val getDispatcherMethod = queue.javaClass.methods.first { method ->
+                                method.parameterCount == 0 &&
+                                        method.returnType.isInterface &&
+                                        method.returnType.name.startsWith("com.tencent.mm.")
+                            }
+                            val dispatcher = getDispatcherMethod.invoke(queue)
 
-                        val doSceneMethod = msgObj.javaClass.reflekt().firstMethod {
-                            name = "doScene"
-                        }
-                        val callbackInterface = doSceneMethod.parameterTypes[1]
+                            val doSceneMethod = msgObj.javaClass.reflekt().firstMethod {
+                                name = "doScene"
+                            }
+                            val callbackInterface = doSceneMethod.parameterTypes[1]
 
-                        val callbackProxy = Proxy.newProxyInstance(
-                            ClassLoaders.HOST,
-                            arrayOf(callbackInterface)
-                        ) { _, method, args ->
-                            if (method.name == "onSceneEnd") {
-                                try {
-                                    val errType = args[0] as Int
-                                    val errCode = args[1] as Int
-                                    val scene = args[3]
-                                    if (errType == 0 && errCode == 0 && scene != null) {
-                                        val lastMsgSvrId = WeDatabaseApi.getMessages(toUser, 1, 1).firstOrNull()?.msgId
-                                        cb.accept(lastMsgSvrId)
-                                    } else {
+                            val callbackProxy = Proxy.newProxyInstance(
+                                ClassLoaders.HOST,
+                                arrayOf(callbackInterface)
+                            ) { _, method, args ->
+                                if (method.name == "onSceneEnd") {
+                                    try {
+                                        val errType = args[0] as Int
+                                        val errCode = args[1] as Int
+                                        val scene = args[3]
+                                        if (errType == 0 && errCode == 0 && scene != null) {
+                                            val lastMsgSvrId = WeDatabaseApi.getMessages(toUser, 1, 1).firstOrNull()?.msgId
+                                            cb.accept(lastMsgSvrId)
+                                        } else {
+                                            cb.accept(null)
+                                        }
+                                    } catch (_: Throwable) {
                                         cb.accept(null)
                                     }
-                                } catch (_: Throwable) {
-                                    cb.accept(null)
                                 }
+                                null
                             }
-                            null
-                        }
 
-                        doSceneMethod.invoke(msgObj, dispatcher, callbackProxy)
-                    }.onFailure { cb.accept(null) }
-                }
-                return@BshMethod null
-            })
+                            doSceneMethod.invoke(msgObj, dispatcher, callbackProxy)
+                        }.onFailure { cb.accept(null) }
+                    }
+                    return@BshMethod null
+                })
 
             // sendImage(toUser, imgPath) → Boolean
-            setMethod(BshMethod(
-                "sendImage", arrayOf(BString, BString)
-            ) {
-                val toUser = it[0] as String
-                val imgPath = it[1] as String
-                return@BshMethod runCatchingBsh("sendImage") {
-                    WeMessageApi.sendImage(toUser, imgPath)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendImage", arrayOf(BString, BString)
+                ) {
+                    val toUser = it[0] as String
+                    val imgPath = it[1] as String
+                    return@BshMethod runCatchingBsh("sendImage") {
+                        WeMessageApi.sendImage(toUser, imgPath)
+                    }.getOrDefault(false)
+                })
 
             // sendImage(toUser, imgPath, appId) → Boolean
-            setMethod(BshMethod(
-                "sendImage", arrayOf(BString, BString, BString)
-            ) {
-                val toUser = it[0] as String
-                val imgPath = it[1] as String
-                return@BshMethod runCatchingBsh("sendImage") {
-                    WeMessageApi.sendImage(toUser, imgPath)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendImage", arrayOf(BString, BString, BString)
+                ) {
+                    val toUser = it[0] as String
+                    val imgPath = it[1] as String
+                    return@BshMethod runCatchingBsh("sendImage") {
+                        WeMessageApi.sendImage(toUser, imgPath)
+                    }.getOrDefault(false)
+                })
 
             // sendImage(toUser, imgPath, isRaw) → Boolean
-            setMethod(BshMethod(
-                "sendImage", arrayOf(BString, BString, bool)
-            ) {
-                val toUser = it[0] as String
-                val imgPath = it[1] as String
-                // args[2] ignored
-                return@BshMethod runCatchingBsh("sendImage") {
-                    WeMessageApi.sendImage(toUser, imgPath)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendImage", arrayOf(BString, BString, bool)
+                ) {
+                    val toUser = it[0] as String
+                    val imgPath = it[1] as String
+                    // args[2] ignored
+                    return@BshMethod runCatchingBsh("sendImage") {
+                        WeMessageApi.sendImage(toUser, imgPath)
+                    }.getOrDefault(false)
+                })
 
             // sendImage(toUser, imgPath, msgId) → Boolean
-            setMethod(BshMethod(
-                "sendImage", arrayOf(BString, BString, java.lang.Long.TYPE)
-            ) {
-                val toUser = it[0] as String
-                val imgPath = it[1] as String
-                return@BshMethod runCatchingBsh("sendImage") {
-                    WeMessageApi.sendImage(toUser, imgPath)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendImage", arrayOf(BString, BString, java.lang.Long.TYPE)
+                ) {
+                    val toUser = it[0] as String
+                    val imgPath = it[1] as String
+                    return@BshMethod runCatchingBsh("sendImage") {
+                        WeMessageApi.sendImage(toUser, imgPath)
+                    }.getOrDefault(false)
+                })
 
             // sendVoice(toUser, path) → Boolean (default duration 0)
-            setMethod(BshMethod(
-                "sendVoice", arrayOf(BString, BString)
-            ) {
-                val toUser = it[0] as String
-                val path = it[1] as String
-                return@BshMethod runCatchingBsh("sendVoice") {
-                    WeMessageApi.sendVoice(toUser, path, 0)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendVoice", arrayOf(BString, BString)
+                ) {
+                    val toUser = it[0] as String
+                    val path = it[1] as String
+                    return@BshMethod runCatchingBsh("sendVoice") {
+                        WeMessageApi.sendVoice(toUser, path, 0)
+                    }.getOrDefault(false)
+                })
 
             // sendVoice(toUser, path, durationMs) → Boolean
-            setMethod(BshMethod(
-                "sendVoice", arrayOf(BString, BString, int)
-            ) {
-                val toUser = it[0] as String
-                val path = it[1] as String
-                val durationMs = it[2] as Int
-                return@BshMethod runCatchingBsh("sendVoice") {
-                    WeMessageApi.sendVoice(toUser, path, durationMs)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendVoice", arrayOf(BString, BString, int)
+                ) {
+                    val toUser = it[0] as String
+                    val path = it[1] as String
+                    val durationMs = it[2] as Int
+                    return@BshMethod runCatchingBsh("sendVoice") {
+                        WeMessageApi.sendVoice(toUser, path, durationMs)
+                    }.getOrDefault(false)
+                })
 
             // sendFile(talker, filePath, title) → Boolean
-            setMethod(BshMethod(
-                "sendFile", arrayOf(BString, BString, BString)
-            ) {
-                val talker = it[0] as String
-                val filePath = it[1] as String
-                val title = it[2] as String
-                return@BshMethod runCatchingBsh("sendFile") {
-                    WeMessageApi.sendFile(talker, filePath, title)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendFile", arrayOf(BString, BString, BString)
+                ) {
+                    val talker = it[0] as String
+                    val filePath = it[1] as String
+                    val title = it[2] as String
+                    return@BshMethod runCatchingBsh("sendFile") {
+                        WeMessageApi.sendFile(talker, filePath, title)
+                    }.getOrDefault(false)
+                })
 
             // sendXmlAppMsg(toUser, xmlContent) → Boolean
-            setMethod(BshMethod(
-                "sendXmlAppMsg", arrayOf(BString, BString)
-            ) {
-                val toUser = it[0] as String
-                val xmlContent = it[1] as String
-                return@BshMethod runCatchingBsh("sendXmlAppMsg") {
-                    WeMessageApi.sendXmlAppMsg(toUser, xmlContent)
-                }.getOrDefault(false)
-            })
-            setMethod(BshMethod(
-                "sendXml", arrayOf(BString, BString, int)
-            ) {
-                val toUser = it[0] as String
-                val xmlContent = it[1] as String
-                return@BshMethod runCatchingBsh("sendXmlAppMsg") {
-                    WeMessageApi.sendXmlAppMsg(toUser, xmlContent)
-                }.getOrDefault(false)
-            })
-            setMethod(BshMethod(
-                "sendCard", arrayOf(BString, BString)
-            ) {
-                val toUser = it[0] as String
-                val xmlContent = it[1] as String
-                return@BshMethod runCatchingBsh("sendXmlAppMsg") {
-                    WeMessageApi.sendXmlAppMsg(toUser, xmlContent)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendXmlAppMsg", arrayOf(BString, BString)
+                ) {
+                    val toUser = it[0] as String
+                    val xmlContent = it[1] as String
+                    return@BshMethod runCatchingBsh("sendXmlAppMsg") {
+                        WeMessageApi.sendXmlAppMsg(toUser, xmlContent)
+                    }.getOrDefault(false)
+                })
+            setMethod(
+                BshMethod(
+                    "sendXml", arrayOf(BString, BString, int)
+                ) {
+                    val toUser = it[0] as String
+                    val xmlContent = it[1] as String
+                    return@BshMethod runCatchingBsh("sendXmlAppMsg") {
+                        WeMessageApi.sendXmlAppMsg(toUser, xmlContent)
+                    }.getOrDefault(false)
+                })
+            setMethod(
+                BshMethod(
+                    "sendCard", arrayOf(BString, BString)
+                ) {
+                    val toUser = it[0] as String
+                    val xmlContent = it[1] as String
+                    return@BshMethod runCatchingBsh("sendXmlAppMsg") {
+                        WeMessageApi.sendXmlAppMsg(toUser, xmlContent)
+                    }.getOrDefault(false)
+                })
 
             // insertSystemMsg(talker, content, time) → insert a system message in chat
-            setMethod(BshMethod(
-                "insertSystemMsg", arrayOf(BString, BString, java.lang.Long.TYPE)
-            ) {
-                val talker = it[0] as String
-                val content = it[1] as String
-                val time = it[2] as Long
-                runCatchingBsh("insertSystemMsg") {
-                    WeMessageApi.createSimpleMsgInfoAndInsert(MessageType.SYSTEM.code, talker, content, time)
-                }
-            })
+            setMethod(
+                BshMethod(
+                    "insertSystemMsg", arrayOf(BString, BString, java.lang.Long.TYPE)
+                ) {
+                    val talker = it[0] as String
+                    val content = it[1] as String
+                    val time = it[2] as Long
+                    runCatchingBsh("insertSystemMsg") {
+                        WeMessageApi.createSimpleMsgInfoAndInsert(MessageType.SYSTEM.code, talker, content, time)
+                    }
+                })
 
-            setMethod(BshMethod(
-                "revokeMsg", arrayOf(java.lang.Long.TYPE)
-            ) {
-                val msgId = it[0] as Long
-                return@BshMethod runCatchingBsh("revokeMsg") {
-                    WeMessageApi.revokeMsgByMsgId(msgId)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "revokeMsg", arrayOf(java.lang.Long.TYPE)
+                ) {
+                    val msgId = it[0] as Long
+                    return@BshMethod runCatchingBsh("revokeMsg") {
+                        WeMessageApi.revokeMsgByMsgId(msgId)
+                    }.getOrDefault(false)
+                })
 
-            setMethod(BshMethod(
-                "revokeMsgByMsgId", arrayOf(java.lang.Long.TYPE)
-            ) {
-                val msgId = it[0] as Long
-                return@BshMethod runCatchingBsh("revokeMsgByMsgId") {
-                    WeMessageApi.revokeMsgByMsgId(msgId)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "revokeMsgByMsgId", arrayOf(java.lang.Long.TYPE)
+                ) {
+                    val msgId = it[0] as Long
+                    return@BshMethod runCatchingBsh("revokeMsgByMsgId") {
+                        WeMessageApi.revokeMsgByMsgId(msgId)
+                    }.getOrDefault(false)
+                })
 
-            setMethod(BshMethod(
-                "revokeMsgByMsgSvrId", arrayOf(java.lang.Long.TYPE)
-            ) {
-                val msgSvrId = it[0] as Long
-                return@BshMethod runCatchingBsh("revokeMsgByMsgSvrId") {
-                    WeMessageApi.revokeMsgByMsgSvrId(msgSvrId)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "revokeMsgByMsgSvrId", arrayOf(java.lang.Long.TYPE)
+                ) {
+                    val msgSvrId = it[0] as Long
+                    return@BshMethod runCatchingBsh("revokeMsgByMsgSvrId") {
+                        WeMessageApi.revokeMsgByMsgSvrId(msgSvrId)
+                    }.getOrDefault(false)
+                })
 
-            setMethod(BshMethod(
-                "sendQuoteMsg", arrayOf(BString, java.lang.Long.TYPE, BString)
-            ) {
-                val talker = it[0] as String
-                val content = it[1] as String
-                val msgId = it[2] as Long
-                return@BshMethod runCatchingBsh("sendQuoteMsg") {
-                    WeMessageApi.sendQuoteMsgByMsgId(talker, msgId, content)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendQuoteMsg", arrayOf(BString, java.lang.Long.TYPE, BString)
+                ) {
+                    val talker = it[0] as String
+                    val content = it[1] as String
+                    val msgId = it[2] as Long
+                    return@BshMethod runCatchingBsh("sendQuoteMsg") {
+                        WeMessageApi.sendQuoteMsgByMsgId(talker, msgId, content)
+                    }.getOrDefault(false)
+                })
 
             // ===== Database =====
 
             // queryHistoryMsg(talker, msgSvrId, limit) → list of WeMessage objects
-            setMethod(BshMethod(
-                "queryHistoryMsg", arrayOf(BString, java.lang.Long.TYPE, int)
-            ) {
-                val talker = it[0] as String
-                val limit = it[2] as Int
-                return@BshMethod runCatchingBsh("queryHistoryMsg") {
-                    WeDatabaseApi.getMessages(talker, 1, limit)
-                }.getOrDefault(emptyList<Any>())
-            })
+            setMethod(
+                BshMethod(
+                    "queryHistoryMsg", arrayOf(BString, java.lang.Long.TYPE, int)
+                ) {
+                    val talker = it[0] as String
+                    val limit = it[2] as Int
+                    return@BshMethod runCatchingBsh("queryHistoryMsg") {
+                        WeDatabaseApi.getMessages(talker, 1, limit)
+                    }.getOrDefault(emptyList<Any>())
+                })
 
             // ===== Extended Messaging (Step 3d) =====
 
             // sendEmoji(toUser, md5) → Boolean
-            setMethod(BshMethod(
-                "sendEmoji", arrayOf(BString, BString)
-            ) {
-                val toUser = it[0] as String
-                val path = it[1] as String
-                return@BshMethod runCatchingBsh("sendEmoji") {
-                    WeMessageApi.sendEmoji(toUser, path)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendEmoji", arrayOf(BString, BString)
+                ) {
+                    val toUser = it[0] as String
+                    val path = it[1] as String
+                    return@BshMethod runCatchingBsh("sendEmoji") {
+                        WeMessageApi.sendEmoji(toUser, path)
+                    }.getOrDefault(false)
+                })
 
             // sendEmoji(toUser, md5, msgId) → Boolean
-            setMethod(BshMethod(
-                "sendEmoji", arrayOf(BString, BString, java.lang.Long.TYPE)
-            ) {
-                val toUser = it[0] as String
-                val path = it[1] as String
-                return@BshMethod runCatchingBsh("sendEmoji") {
-                    WeMessageApi.sendEmoji(toUser, path)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendEmoji", arrayOf(BString, BString, java.lang.Long.TYPE)
+                ) {
+                    val toUser = it[0] as String
+                    val path = it[1] as String
+                    return@BshMethod runCatchingBsh("sendEmoji") {
+                        WeMessageApi.sendEmoji(toUser, path)
+                    }.getOrDefault(false)
+                })
 
             // sendPat(toUser, patTarget) → Boolean
-            setMethod(BshMethod(
-                "sendPat", arrayOf(BString, BString)
-            ) {
-                val toUser = it[0] as String; val patTarget = it[1] as String
-                return@BshMethod runCatchingBsh("sendPat") {
-                    WeMessageApi.sendPat(toUser, patTarget)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendPat", arrayOf(BString, BString)
+                ) {
+                    val toUser = it[0] as String
+                    val patTarget = it[1] as String
+                    return@BshMethod runCatchingBsh("sendPat") {
+                        WeMessageApi.sendPat(toUser, patTarget)
+                    }.getOrDefault(false)
+                })
 
             // sendLocation(talker, poiName, label, x, y, scale) → Boolean
-            setMethod(BshMethod(
-                "sendLocation", arrayOf(BString, BString, BString, BString, BString, BString)
-            ) {
-                return@BshMethod runCatchingBsh("sendLocation") {
-                    WeMessageApi.sendLocation(
-                         it[0] as String,
-                         it[1] as String,
-                         it[2] as String,
-                         it[3] as String,
-                         it[4] as String,
-                         it[5] as String
-                    )
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendLocation", arrayOf(BString, BString, BString, BString, BString, BString)
+                ) {
+                    return@BshMethod runCatchingBsh("sendLocation") {
+                        WeMessageApi.sendLocation(
+                            it[0] as String,
+                            it[1] as String,
+                            it[2] as String,
+                            it[3] as String,
+                            it[4] as String,
+                            it[5] as String
+                        )
+                    }.getOrDefault(false)
+                })
 
             // sendShareCard(talker, cardWxId) → Boolean
-            setMethod(BshMethod(
-                "sendShareCard", arrayOf(BString, BString)
-            ) {
-                val toUser = it[0] as String; val cardWxId = it[1] as String
-                return@BshMethod runCatchingBsh("sendShareCard") {
-                    WeMessageApi.sendShareCard(toUser, cardWxId)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendShareCard", arrayOf(BString, BString)
+                ) {
+                    val toUser = it[0] as String
+                    val cardWxId = it[1] as String
+                    return@BshMethod runCatchingBsh("sendShareCard") {
+                        WeMessageApi.sendShareCard(toUser, cardWxId)
+                    }.getOrDefault(false)
+                })
 
             // sendVideo(toUser, path) → Boolean
-            setMethod(BshMethod(
-                "sendVideo", arrayOf(BString, BString)
-            ) {
-                val toUser = it[0] as String; val path = it[1] as String
-                return@BshMethod runCatchingBsh("sendVideo") {
-                    WeMessageApi.sendVideo(toUser, path)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "sendVideo", arrayOf(BString, BString)
+                ) {
+                    val toUser = it[0] as String
+                    val path = it[1] as String
+                    return@BshMethod runCatchingBsh("sendVideo") {
+                        WeMessageApi.sendVideo(toUser, path)
+                    }.getOrDefault(false)
+                })
 
             // ===== Sharing/Media Messaging =====
 
@@ -1162,198 +1241,231 @@ object JavaEngine {
             })
 
             // shareMusicVideo(talker, title, description, musicUrl, musicDataUrl, singerName, duration, songLyric, thumbData, appId)
-            setMethod(BshMethod("shareMusicVideo", arrayOf(
-                BString, BString, BString, BString, BString, BString, int, BString, ByteArray::class.java, BString
-            )) {
-                val talker = it[0] as String
-                val title = it[1] as String
-                val description = it[2] as String
-                val musicUrl = it[3] as String
-                val musicDataUrl = it[4] as String
-                val singerName = it[5] as String
-                val duration = it[6] as Int
-                val songLyric = it[7] as String
-                val thumbData = it[8] as? ByteArray
-                val appId = it[9] as String
-                return@BshMethod runCatchingBsh("shareMusicVideo") {
-                    WeMessageApi.shareMusicVideo(talker, title, description, musicUrl, musicDataUrl, singerName, duration, songLyric, thumbData, appId)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "shareMusicVideo", arrayOf(
+                        BString, BString, BString, BString, BString, BString, int, BString, ByteArray::class.java, BString
+                    )
+                ) {
+                    val talker = it[0] as String
+                    val title = it[1] as String
+                    val description = it[2] as String
+                    val musicUrl = it[3] as String
+                    val musicDataUrl = it[4] as String
+                    val singerName = it[5] as String
+                    val duration = it[6] as Int
+                    val songLyric = it[7] as String
+                    val thumbData = it[8] as? ByteArray
+                    val appId = it[9] as String
+                    return@BshMethod runCatchingBsh("shareMusicVideo") {
+                        WeMessageApi.shareMusicVideo(talker, title, description, musicUrl, musicDataUrl, singerName, duration, songLyric, thumbData, appId)
+                    }.getOrDefault(false)
+                })
 
             // shareMiniProgram(talker, title, description, userName, path, thumbData, appId)
-            setMethod(BshMethod("shareMiniProgram", arrayOf(
-                BString, BString, BString, BString, BString, ByteArray::class.java, BString
-            )) {
-                val talker = it[0] as String
-                val title = it[1] as String
-                val description = it[2] as String
-                val userName = it[3] as String
-                val path = it[4] as String
-                val thumbData = it[5] as? ByteArray
-                val appId = it[6] as String
-                return@BshMethod runCatchingBsh("shareMiniProgram") {
-                    WeMessageApi.shareMiniProgram(talker, title, description, userName, path, thumbData, appId)
-                }.getOrDefault(false)
-            })
+            setMethod(
+                BshMethod(
+                    "shareMiniProgram", arrayOf(
+                        BString, BString, BString, BString, BString, ByteArray::class.java, BString
+                    )
+                ) {
+                    val talker = it[0] as String
+                    val title = it[1] as String
+                    val description = it[2] as String
+                    val userName = it[3] as String
+                    val path = it[4] as String
+                    val thumbData = it[5] as? ByteArray
+                    val appId = it[6] as String
+                    return@BshMethod runCatchingBsh("shareMiniProgram") {
+                        WeMessageApi.shareMiniProgram(talker, title, description, userName, path, thumbData, appId)
+                    }.getOrDefault(false)
+                })
 
             // ===== Contact Labels (Step 3c) =====
 
             // getContactLabelList() → list of ContactLabelBean
-            setMethod(BshMethod(
-                "getContactLabelList", emptyArray<Class<*>>()
-            ) {
-                return@BshMethod runCatchingBsh("getContactLabelList") {
-                    WeContactLabelApi.getAllLabels().map { label -> ContactLabelBean(label) }
-                }.getOrDefault(emptyList<Any>())
-            })
+            setMethod(
+                BshMethod(
+                    "getContactLabelList", emptyArray<Class<*>>()
+                ) {
+                    return@BshMethod runCatchingBsh("getContactLabelList") {
+                        WeContactLabelApi.getAllLabels().map { label -> ContactLabelBean(label) }
+                    }.getOrDefault(emptyList<Any>())
+                })
 
             // getContactByLabelId(id) → list of wxid strings (Integer label ID)
-            setMethod(BshMethod(
-                "getContactByLabelId", arrayOf(int)
-            ) {
-                val labelId = it[0] as Int
-                return@BshMethod runCatchingBsh("getContactByLabelId") {
-                    WeContactLabelApi.getContactsByLabelId(labelId)
-                }.getOrDefault(emptyList<Any>())
-            })
+            setMethod(
+                BshMethod(
+                    "getContactByLabelId", arrayOf(int)
+                ) {
+                    val labelId = it[0] as Int
+                    return@BshMethod runCatchingBsh("getContactByLabelId") {
+                        WeContactLabelApi.getContactsByLabelId(labelId)
+                    }.getOrDefault(emptyList<Any>())
+                })
 
             // getContactByLabelId(id) → list of wxid strings (String label ID)
-            setMethod(BshMethod(
-                "getContactByLabelId", arrayOf(BString)
-            ) {
-                val labelIdStr = it[0] as String
-                val labelId = labelIdStr.toIntOrNull() ?: 0
-                return@BshMethod runCatchingBsh("getContactByLabelId") {
-                    WeContactLabelApi.getContactsByLabelId(labelId)
-                }.getOrDefault(emptyList<Any>())
-            })
+            setMethod(
+                BshMethod(
+                    "getContactByLabelId", arrayOf(BString)
+                ) {
+                    val labelIdStr = it[0] as String
+                    val labelId = labelIdStr.toIntOrNull() ?: 0
+                    return@BshMethod runCatchingBsh("getContactByLabelId") {
+                        WeContactLabelApi.getContactsByLabelId(labelId)
+                    }.getOrDefault(emptyList<Any>())
+                })
 
             // getContactByLabelName(name) → list of wxid strings
-            setMethod(BshMethod(
-                "getContactByLabelName", arrayOf(BString)
-            ) {
-                val labelName = it[0] as String
-                return@BshMethod runCatchingBsh("getContactByLabelName") {
-                    WeContactLabelApi.getContactsByLabelName(labelName)
-                }.getOrDefault(emptyList<Any>())
-            })
+            setMethod(
+                BshMethod(
+                    "getContactByLabelName", arrayOf(BString)
+                ) {
+                    val labelName = it[0] as String
+                    return@BshMethod runCatchingBsh("getContactByLabelName") {
+                        WeContactLabelApi.getContactsByLabelName(labelName)
+                    }.getOrDefault(emptyList<Any>())
+                })
 
             // ===== Security (Step 3b) =====
 
             // verifyUser(userId, ticket, scene) → opens verify UI
-            setMethod(BshMethod(
-                "verifyUser", arrayOf(BString, BString, int)
-            ) {
-                val userId = it[0] as String; val ticket = it[1] as String; val scene = it[2] as Int
-                runCatchingBsh("verifyUser") { WeContactApi.verifyUser(userId, ticket, scene) }
-            })
+            setMethod(
+                BshMethod(
+                    "verifyUser", arrayOf(BString, BString, int)
+                ) {
+                    val userId = it[0] as String
+                    val ticket = it[1] as String
+                    val scene = it[2] as Int
+                    runCatchingBsh("verifyUser") { WeContactApi.verifyUser(userId, ticket, scene) }
+                })
 
             // verifyUser(userId, ticket, scene, privacy) → opens verify UI
-            setMethod(BshMethod(
-                "verifyUser", arrayOf(BString, BString, int, int)
-            ) {
-                val userId = it[0] as String; val ticket = it[1] as String; val scene = it[2] as Int; val privacy = it[3] as Int
-                runCatchingBsh("verifyUser") { WeContactApi.verifyUser(userId, ticket, scene, privacy) }
-            })
+            setMethod(
+                BshMethod(
+                    "verifyUser", arrayOf(BString, BString, int, int)
+                ) {
+                    val userId = it[0] as String
+                    val ticket = it[1] as String
+                    val scene = it[2] as Int
+                    val privacy = it[3] as Int
+                    runCatchingBsh("verifyUser") { WeContactApi.verifyUser(userId, ticket, scene, privacy) }
+                })
 
             // ===== Chatroom Management =====
 
             // addChatroomMember(groupId, memberWxId) — add single member
-            setMethod(BshMethod(
-                "addChatroomMember", arrayOf(BString, BString)
-            ) {
-                val groupId = it[0] as String
-                val memberWxId = it[1] as String
-                runCatchingBsh("addChatroomMember") { WeGroupApi.addMember(groupId, memberWxId) }
-            })
+            setMethod(
+                BshMethod(
+                    "addChatroomMember", arrayOf(BString, BString)
+                ) {
+                    val groupId = it[0] as String
+                    val memberWxId = it[1] as String
+                    runCatchingBsh("addChatroomMember") { WeGroupApi.addMember(groupId, memberWxId) }
+                })
 
             // addChatroomMember(groupId, memberList) — add multiple members
-            setMethod(BshMethod(
-                "addChatroomMember", arrayOf(BString, List::class.java)
-            ) {
-                val groupId = it[0] as String
-                @Suppress("UNCHECKED_CAST")
-                val memberList = it[1] as List<String>
-                runCatchingBsh("addChatroomMember") { WeGroupApi.addMembers(groupId, memberList) }
-            })
+            setMethod(
+                BshMethod(
+                    "addChatroomMember", arrayOf(BString, List::class.java)
+                ) {
+                    val groupId = it[0] as String
+
+                    @Suppress("UNCHECKED_CAST")
+                    val memberList = it[1] as List<String>
+                    runCatchingBsh("addChatroomMember") { WeGroupApi.addMembers(groupId, memberList) }
+                })
 
             // delChatroomMember(groupId, memberWxId) — remove single member
-            setMethod(BshMethod(
-                "delChatroomMember", arrayOf(BString, BString)
-            ) {
-                val groupId = it[0] as String
-                val memberWxId = it[1] as String
-                runCatchingBsh("delChatroomMember") { WeGroupApi.delMember(groupId, memberWxId) }
-            })
+            setMethod(
+                BshMethod(
+                    "delChatroomMember", arrayOf(BString, BString)
+                ) {
+                    val groupId = it[0] as String
+                    val memberWxId = it[1] as String
+                    runCatchingBsh("delChatroomMember") { WeGroupApi.delMember(groupId, memberWxId) }
+                })
 
             // delChatroomMember(groupId, memberList) — remove multiple members
-            setMethod(BshMethod(
-                "delChatroomMember", arrayOf(BString, List::class.java)
-            ) {
-                val groupId = it[0] as String
-                @Suppress("UNCHECKED_CAST")
-                val memberList = it[1] as List<String>
-                runCatchingBsh("delChatroomMember") { WeGroupApi.delMembers(groupId, memberList) }
-            })
+            setMethod(
+                BshMethod(
+                    "delChatroomMember", arrayOf(BString, List::class.java)
+                ) {
+                    val groupId = it[0] as String
+
+                    @Suppress("UNCHECKED_CAST")
+                    val memberList = it[1] as List<String>
+                    runCatchingBsh("delChatroomMember") { WeGroupApi.delMembers(groupId, memberList) }
+                })
 
             // inviteChatroomMember(groupId, memberWxId) — invite single member
-            setMethod(BshMethod(
-                "inviteChatroomMember", arrayOf(BString, BString)
-            ) {
-                val groupId = it[0] as String
-                val memberWxId = it[1] as String
-                runCatchingBsh("inviteChatroomMember") { WeGroupApi.inviteMember(groupId, memberWxId) }
-            })
+            setMethod(
+                BshMethod(
+                    "inviteChatroomMember", arrayOf(BString, BString)
+                ) {
+                    val groupId = it[0] as String
+                    val memberWxId = it[1] as String
+                    runCatchingBsh("inviteChatroomMember") { WeGroupApi.inviteMember(groupId, memberWxId) }
+                })
 
             // inviteChatroomMember(groupId, memberList) — invite multiple members
-            setMethod(BshMethod(
-                "inviteChatroomMember", arrayOf(BString, List::class.java)
-            ) {
-                val groupId = it[0] as String
-                @Suppress("UNCHECKED_CAST")
-                val memberList = it[1] as List<String>
-                runCatchingBsh("inviteChatroomMember") { WeGroupApi.inviteMembers(groupId, memberList) }
-            })
+            setMethod(
+                BshMethod(
+                    "inviteChatroomMember", arrayOf(BString, List::class.java)
+                ) {
+                    val groupId = it[0] as String
+
+                    @Suppress("UNCHECKED_CAST")
+                    val memberList = it[1] as List<String>
+                    runCatchingBsh("inviteChatroomMember") { WeGroupApi.inviteMembers(groupId, memberList) }
+                })
 
             // ===== Hooks =====
 
             // hookBefore(member, consumer) → hook handle id
-            setMethod(BshMethod(
-                "hookBefore", arrayOf(Member::class.java, Consumer::class.java)
-            ) {
-                val member = it[0] as Member
-                @Suppress("UNCHECKED_CAST")
-                val consumer = it[1] as Consumer<XC_MethodHook.MethodHookParam>
-                return@BshMethod JavaHookApi.hookBefore(member, consumer)
-            })
+            setMethod(
+                BshMethod(
+                    "hookBefore", arrayOf(Member::class.java, Consumer::class.java)
+                ) {
+                    val member = it[0] as Member
+
+                    @Suppress("UNCHECKED_CAST")
+                    val consumer = it[1] as Consumer<XC_MethodHook.MethodHookParam>
+                    return@BshMethod JavaHookApi.hookBefore(member, consumer)
+                })
 
             // hookAfter(member, consumer) → hook handle id
-            setMethod(BshMethod(
-                "hookAfter", arrayOf(Member::class.java, Consumer::class.java)
-            ) {
-                val member = it[0] as Member
-                @Suppress("UNCHECKED_CAST")
-                val consumer = it[1] as Consumer<XC_MethodHook.MethodHookParam>
-                return@BshMethod JavaHookApi.hookAfter(member, consumer)
-            })
+            setMethod(
+                BshMethod(
+                    "hookAfter", arrayOf(Member::class.java, Consumer::class.java)
+                ) {
+                    val member = it[0] as Member
+
+                    @Suppress("UNCHECKED_CAST")
+                    val consumer = it[1] as Consumer<XC_MethodHook.MethodHookParam>
+                    return@BshMethod JavaHookApi.hookAfter(member, consumer)
+                })
 
             // hookReplace(member, function) → hook handle id
-            setMethod(BshMethod(
-                "hookReplace", arrayOf(Member::class.java, Function::class.java)
-            ) {
-                val member = it[0] as Member
-                @Suppress("UNCHECKED_CAST")
-                val function = it[1] as Function<XC_MethodHook.MethodHookParam, Any?>
-                return@BshMethod JavaHookApi.hookReplace(member, function)
-            })
+            setMethod(
+                BshMethod(
+                    "hookReplace", arrayOf(Member::class.java, Function::class.java)
+                ) {
+                    val member = it[0] as Member
+
+                    @Suppress("UNCHECKED_CAST")
+                    val function = it[1] as Function<XC_MethodHook.MethodHookParam, Any?>
+                    return@BshMethod JavaHookApi.hookReplace(member, function)
+                })
 
             // unhook(handle) → remove a hook
-            setMethod(BshMethod(
-                "unhook", arrayOf(me.hd.wauxv.hook.HookHandle::class.java)
-            ) {
-                val handle = it[0] as me.hd.wauxv.hook.HookHandle
-                JavaHookApi.unhook(handle)
-            })
+            setMethod(
+                BshMethod(
+                    "unhook", arrayOf(me.hd.wauxv.hook.HookHandle::class.java)
+                ) {
+                    val handle = it[0] as me.hd.wauxv.hook.HookHandle
+                    JavaHookApi.unhook(handle)
+                })
 
             // === DexKit Search APIs ===
             setMethod(BshMethod("findClassList", arrayOf(List::class.java)) {
@@ -1390,15 +1502,23 @@ object JavaEngine {
 
             // delay(ms, runnable)
             setMethod(BshMethod("delay", arrayOf(java.lang.Long.TYPE, Runnable::class.java)) {
-                val ms = it[0] as Long; val action = it[1] as Runnable
-                thread { try { Thread.sleep(ms); action.run() } catch (_: InterruptedException) {} }
+                val ms = it[0] as Long
+                val action = it[1] as Runnable
+                thread {
+                    try {
+                        Thread.sleep(ms); action.run()
+                    } catch (_: InterruptedException) {
+                    }
+                }
             })
 
             // === HTTP (OkHttp) ===
             setMethod(BshMethod("get", arrayOf(BString, Map::class.java, Consumer::class.java)) {
                 val url = it[0] as String
+
                 @Suppress("UNCHECKED_CAST")
                 val headers = it[1] as? Map<String, String>
+
                 @Suppress("UNCHECKED_CAST")
                 val cb = it[2] as Consumer<String?>
                 thread {
@@ -1413,9 +1533,11 @@ object JavaEngine {
             })
             setMethod(BshMethod("get", arrayOf(BString, Map::class.java, java.lang.Long.TYPE, Consumer::class.java)) {
                 val url = it[0] as String
+
                 @Suppress("UNCHECKED_CAST")
                 val headers = it[1] as? Map<String, String>
                 val timeout = it[2] as Long
+
                 @Suppress("UNCHECKED_CAST")
                 val cb = it[3] as Consumer<String?>
                 thread {
@@ -1434,10 +1556,13 @@ object JavaEngine {
             })
             setMethod(BshMethod("post", arrayOf(BString, Map::class.java, Map::class.java, Consumer::class.java)) {
                 val url = it[0] as String
+
                 @Suppress("UNCHECKED_CAST")
                 val params = it[1] as? Map<String, String>
+
                 @Suppress("UNCHECKED_CAST")
                 val headers = it[2] as? Map<String, String>
+
                 @Suppress("UNCHECKED_CAST")
                 val cb = it[3] as Consumer<String?>
                 thread {
@@ -1454,11 +1579,14 @@ object JavaEngine {
             })
             setMethod(BshMethod("post", arrayOf(BString, Map::class.java, Map::class.java, java.lang.Long.TYPE, Consumer::class.java)) {
                 val url = it[0] as String
+
                 @Suppress("UNCHECKED_CAST")
                 val params = it[1] as? Map<String, String>
+
                 @Suppress("UNCHECKED_CAST")
                 val headers = it[2] as? Map<String, String>
                 val timeout = it[3] as Long
+
                 @Suppress("UNCHECKED_CAST")
                 val cb = it[4] as Consumer<String?>
                 thread {
@@ -1478,9 +1606,12 @@ object JavaEngine {
                 }
             })
             setMethod(BshMethod("download", arrayOf(BString, BString, Map::class.java, Consumer::class.java)) {
-                val url = it[0] as String; val path = it[1] as String
+                val url = it[0] as String
+                val path = it[1] as String
+
                 @Suppress("UNCHECKED_CAST")
                 val headers = it[2] as? Map<String, String>
+
                 @Suppress("UNCHECKED_CAST")
                 val cb = it[3] as Consumer<File?>
                 thread {
@@ -1496,10 +1627,13 @@ object JavaEngine {
                 }
             })
             setMethod(BshMethod("download", arrayOf(BString, BString, Map::class.java, java.lang.Long.TYPE, Consumer::class.java)) {
-                val url = it[0] as String; val path = it[1] as String
+                val url = it[0] as String
+                val path = it[1] as String
+
                 @Suppress("UNCHECKED_CAST")
                 val headers = it[2] as? Map<String, String>
                 val timeout = it[3] as Long
+
                 @Suppress("UNCHECKED_CAST")
                 val cb = it[4] as Consumer<File?>
                 thread {
@@ -1707,7 +1841,14 @@ object JavaEngine {
             })
             setMethod(BshMethod("sendLocation", arrayOf(BString, org.json.JSONObject::class.java)) {
                 val jo = it[1] as org.json.JSONObject
-                return@BshMethod WeMessageApi.sendLocation(it[0] as String, jo.optString("poiName",""), jo.optString("label",""), jo.optString("x","0"), jo.optString("y","0"), jo.optString("scale","0"))
+                return@BshMethod WeMessageApi.sendLocation(
+                    it[0] as String,
+                    jo.optString("poiName", ""),
+                    jo.optString("label", ""),
+                    jo.optString("x", "0"),
+                    jo.optString("y", "0"),
+                    jo.optString("scale", "0")
+                )
             })
             setMethod(BshMethod("sendMediaMsg", arrayOf(BString, Any::class.java, BString)) {
                 val toUser = it[0] as String
@@ -1741,7 +1882,8 @@ object JavaEngine {
                 val title = it[1] as String
                 val pagePath = it[2] as String
                 val username = it[3] as String
-                val xml = """<msg><appmsg type="33"><title>$title</title><weappinfo><item><pagepath><![CDATA[$pagePath]]></pagepath><username>$username</username></item></weappinfo></appmsg></msg>"""
+                val xml =
+                    """<msg><appmsg type="33"><title>$title</title><weappinfo><item><pagepath><![CDATA[$pagePath]]></pagepath><username>$username</username></item></weappinfo></appmsg></msg>"""
                 return@BshMethod runCatchingBsh("sendAppBrandMsg") {
                     WeMessageApi.sendXmlAppMsg(toUser, xml)
                 }.getOrDefault(false)
@@ -1792,11 +1934,12 @@ object JavaEngine {
             // ===== Utility =====
 
             // getTopActivity() — returns the current top-most Activity
-            setMethod(BshMethod(
-                "getTopActivity", emptyArray<Class<*>>()
-            ) {
-                return@BshMethod getTopMostActivity()
-            })
+            setMethod(
+                BshMethod(
+                    "getTopActivity", emptyArray<Class<*>>()
+                ) {
+                    return@BshMethod getTopMostActivity()
+                })
         }
     }
 

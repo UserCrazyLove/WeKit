@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import dev.ujhhgtg.wekit.features.api.agent.WeAgentService
-import dev.ujhhgtg.wekit.ui.agent.settings.ExternalServicesScreen
 import dev.ujhhgtg.wekit.ui.agent.settings.BuiltinProvidersScreen
+import dev.ujhhgtg.wekit.ui.agent.settings.ExternalServicesScreen
 import dev.ujhhgtg.wekit.ui.agent.settings.McpServerDetailScreen
 import dev.ujhhgtg.wekit.ui.agent.settings.McpServersScreen
 import dev.ujhhgtg.wekit.ui.agent.settings.MemoryScreen
@@ -95,24 +95,29 @@ private fun RenderScreen(
             onBack = pop,
             onOpenProvider = { push(AgentSettingsScreen.ModelProviderDetail(it)) },
         )
+
         is AgentSettingsScreen.ModelProviderDetail -> ModelProviderDetailScreen(
             providerId = screen.providerId,
             onBack = pop,
         )
+
         AgentSettingsScreen.BuiltinTools -> BuiltinProvidersScreen(
             onBack = pop,
             onOpenProvider = { id, name -> push(AgentSettingsScreen.BuiltinToolPermissions(id, name)) },
         )
+
         is AgentSettingsScreen.BuiltinToolPermissions -> ToolPermissionListScreen(
             title = screen.name,
             providerId = screen.providerId,
             tools = builtinProviderTools(screen.providerId),
             onBack = pop,
         )
+
         AgentSettingsScreen.McpServers -> McpServersScreen(
             onBack = pop,
             onOpenServer = { push(AgentSettingsScreen.McpServerDetail(it)) },
         )
+
         is AgentSettingsScreen.McpServerDetail -> McpServerDetailScreen(serverId = screen.serverId, onBack = pop)
         AgentSettingsScreen.Prompts -> PromptsScreen(onBack = pop)
         AgentSettingsScreen.Workspaces -> WorkspacesScreen(onBack = pop)

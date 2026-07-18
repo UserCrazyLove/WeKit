@@ -157,8 +157,7 @@ object MessageTimeEnhancements : ClickableFeature(),
 
         if (isAlwaysVisible) {
             time.visibility = View.VISIBLE
-        }
-        else {
+        } else {
             if (!time.isVisible) return
         }
 

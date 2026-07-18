@@ -2,6 +2,7 @@ package dev.ujhhgtg.wekit.agent.trigger
 
 import dev.ujhhgtg.wekit.agent.data.WeAgentRepository
 import dev.ujhhgtg.wekit.agent.data.entity.TriggerEntity
+import dev.ujhhgtg.wekit.agent.trigger.TriggerManager.Companion.GLOBAL_WINDOW_MS
 import dev.ujhhgtg.wekit.utils.WeLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -125,6 +126,7 @@ class TriggerManager(
                 null
             } else sid
         }
+
         TriggerScope.GLOBAL -> {
             if (!allowGlobalSession()) {
                 WeLogger.w(TAG, "GLOBAL trigger ${trigger.id} rate-limited; skipping fire")

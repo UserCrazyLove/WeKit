@@ -125,6 +125,7 @@ object CronSchedule {
                 val bi = b.toIntOrNull() ?: return false
                 ai to bi
             }
+
             else -> {
                 val v = rangePart.toIntOrNull() ?: return false
                 v to v

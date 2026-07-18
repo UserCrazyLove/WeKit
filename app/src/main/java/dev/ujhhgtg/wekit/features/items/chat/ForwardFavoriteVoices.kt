@@ -61,10 +61,13 @@ object ForwardFavoriteVoices : SwitchFeature() {
             val ctx = thisObject as Activity
 
             showComposeDialog(ctx) {
-                AlertDialogContent(title = { Text("转发收藏语音") },
+                AlertDialogContent(
+                    title = { Text("转发收藏语音") },
                     text = {
-                        Text("确定发送以下文件?\n" +
-                                voiceFilePath)
+                        Text(
+                            "确定发送以下文件?\n" +
+                                    voiceFilePath
+                        )
                     },
                     dismissButton = { TextButton(onDismiss) { Text("取消") } },
                     confirmButton = {

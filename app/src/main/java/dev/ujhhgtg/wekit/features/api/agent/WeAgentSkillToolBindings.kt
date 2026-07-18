@@ -18,8 +18,8 @@ object WeAgentSkillToolBindings {
     @AgentTool(
         name = "load_skill",
         description = "Load an available skill's full instructions by name (see the skills catalog in the " +
-            "system prompt). Optionally pass 'resource' to read a bundled file from the skill's folder " +
-            "instead of the instructions. Returns the content as text.",
+                "system prompt). Optionally pass 'resource' to read a bundled file from the skill's folder " +
+                "instead of the instructions. Returns the content as text.",
         sideEffect = false,
         group = AgentTool.BUILTIN_FS,
     )

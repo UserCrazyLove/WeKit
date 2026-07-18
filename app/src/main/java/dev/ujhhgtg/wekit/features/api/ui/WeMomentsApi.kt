@@ -21,6 +21,7 @@ import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor
+import dev.ujhhgtg.wekit.dexkit.dsl.dexField
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.api.net.models.protobuf.TimelineObjectProto
 import dev.ujhhgtg.wekit.features.api.ui.WeMomentsApi.buildMusicTimelineBundle
@@ -94,6 +95,29 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
             )
         }
     }
+
+    // --- used by AutoMomentsBase ---
+
+    val classImproveSnsInfo by dexClass {
+        matcher {
+            usingEqStrings("ImproveInfo(name=")
+        }
+    }
+
+    val classImproveInteractionLayout by dexClass {
+        matcher {
+            usingEqStrings("MicroMsg.Improve.InteractionLayout")
+        }
+    }
+
+    val fieldInteractionSnsInfo by dexField {
+        matcher {
+            declaredClass(classImproveInteractionLayout.clazz)
+            type(classImproveSnsInfo.clazz)
+        }
+    }
+
+    // --- end used by AutoMomentsBase ---
     private val methodSendLike by dexMethod(allowFailure = true) {
         matcher {
             declaredClass(classSnsService.clazz)
@@ -1259,7 +1283,7 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
         val localVideo = if (isRegularFile) {
             null
         } else {
-            KnownPaths.moduleCache/ "wekit_moments_probe_${System.currentTimeMillis()}.mp4"
+            KnownPaths.moduleCache / "wekit_moments_probe_${System.currentTimeMillis()}.mp4"
         }
         val sourcePath = localVideo?.let { file ->
             if (!copyExistingFile(path, file.absolutePathString())) return false
@@ -1478,11 +1502,7 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
         })
     }
 
-    fun saveVideoToAlbum(context: Context, path: String): Boolean {
-        return saveVideoToAlbumPath(context, path) != null
-    }
-
-    fun saveVideoToAlbumPath(context: Context, path: String): String? {
+    fun saveVideo(context: Context, path: String): String? {
         return runCatching {
             methodExportVideoToAlbum.method.invoke(null, context, path, null, null) as? String
         }.getOrElse {
@@ -1849,6 +1869,7 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
     // 大小落在 [1, 1e12) 而 mtime 是 ~1.7e12 的毫秒时间戳。
     @Volatile
     private var resolvedVfsSizeMethod: Method? = null
+
     @Volatile
     private var vfsSizeResolveTried = false
 
@@ -1977,15 +1998,15 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
         val thumbPathInit = runCatching { resolveThumbImagePath(media, nativeMedia) }.getOrNull()
         WeLogger.i(
             TAG, "ensureImageCached: protoId=${media.id}, " +
-                "bigPath=$bigPath, bigExists=${bigPath?.let { vfsFileExists(it) }}, bigFsSize=${bigPath?.let { regularFileSize(it) }}, bigVfsSize=${
-                    bigPath?.let {
-                        vfsFileSize(
-                            it,
-                            thumbPathInit ?: it
-                        )
-                    }
-                }, bigUsable=${imageFileUsable(bigPath)}, " +
-                "thumbPath=$thumbPathInit, thumbVfsSize=${thumbPathInit?.let { vfsFileSize(it) }}"
+                    "bigPath=$bigPath, bigExists=${bigPath?.let { vfsFileExists(it) }}, bigFsSize=${bigPath?.let { regularFileSize(it) }}, bigVfsSize=${
+                        bigPath?.let {
+                            vfsFileSize(
+                                it,
+                                thumbPathInit ?: it
+                            )
+                        }
+                    }, bigUsable=${imageFileUsable(bigPath)}, " +
+                    "thumbPath=$thumbPathInit, thumbVfsSize=${thumbPathInit?.let { vfsFileSize(it) }}"
         )
 
         // 只有大图确实有内容才算已缓存 (排除 0 字节占位)
@@ -2426,8 +2447,11 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
         return runCatching {
             var cls: Class<*>? = xs4.javaClass
             while (cls != null) {
-                val m = cls.declaredMethods.firstOrNull { it.name == "getString" && it.parameterCount == 1 && it.parameterTypes[0] == Int::class.javaPrimitiveType }
-                if (m != null) { m.isAccessible = true; return m.invoke(xs4, protoFieldNum) as? String }
+                val m =
+                    cls.declaredMethods.firstOrNull { it.name == "getString" && it.parameterCount == 1 && it.parameterTypes[0] == Int::class.javaPrimitiveType }
+                if (m != null) {
+                    m.isAccessible = true; return m.invoke(xs4, protoFieldNum) as? String
+                }
                 cls = cls.superclass
             }
             null
@@ -2438,8 +2462,11 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
         return runCatching {
             var cls: Class<*>? = xs4.javaClass
             while (cls != null) {
-                val m = cls.declaredMethods.firstOrNull { it.name == "getLong" && it.parameterCount == 1 && it.parameterTypes[0] == Int::class.javaPrimitiveType }
-                if (m != null) { m.isAccessible = true; return m.invoke(xs4, protoFieldNum) as? Long ?: 0L }
+                val m =
+                    cls.declaredMethods.firstOrNull { it.name == "getLong" && it.parameterCount == 1 && it.parameterTypes[0] == Int::class.javaPrimitiveType }
+                if (m != null) {
+                    m.isAccessible = true; return m.invoke(xs4, protoFieldNum) as? Long ?: 0L
+                }
                 cls = cls.superclass
             }
             0L
@@ -2450,8 +2477,11 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
         return runCatching {
             var cls: Class<*>? = xs4.javaClass
             while (cls != null) {
-                val m = cls.declaredMethods.firstOrNull { it.name == "getInteger" && it.parameterCount == 1 && it.parameterTypes[0] == Int::class.javaPrimitiveType }
-                if (m != null) { m.isAccessible = true; return m.invoke(xs4, protoFieldNum) as? Int ?: 0 }
+                val m =
+                    cls.declaredMethods.firstOrNull { it.name == "getInteger" && it.parameterCount == 1 && it.parameterTypes[0] == Int::class.javaPrimitiveType }
+                if (m != null) {
+                    m.isAccessible = true; return m.invoke(xs4, protoFieldNum) as? Int ?: 0
+                }
                 cls = cls.superclass
             }
             0
@@ -2488,12 +2518,12 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
             putString("_wxmusicvideoobject_musicUrl", musicUrl)
             putString("_wxmusicvideoobject_musicDataUrl", musicDataUrl)
             putString("_wxmusicvideoobject_singerName", xs4?.let { xs4GetString(it, 4) } ?: "")
-            putString("_wxmusicvideoobject_songLyric",  xs4?.let { xs4GetString(it, 15) } ?: "")
-            putString("_wxmusicvideoobject_albumName",  xs4?.let { xs4GetString(it, 5) } ?: "")
+            putString("_wxmusicvideoobject_songLyric", xs4?.let { xs4GetString(it, 15) } ?: "")
+            putString("_wxmusicvideoobject_albumName", xs4?.let { xs4GetString(it, 5) } ?: "")
             putString("_wxmusicvideoobject_musicGenre", xs4?.let { xs4GetString(it, 7) } ?: "")
-            putLong("_wxmusicvideoobject_issueDate",    xs4?.let { xs4GetLong(it, 8) } ?: 0L)
+            putLong("_wxmusicvideoobject_issueDate", xs4?.let { xs4GetLong(it, 8) } ?: 0L)
             putString("_wxmusicvideoobject_identification", xs4?.let { xs4GetString(it, 9) } ?: "")
-            putInt("_wxmusicvideoobject_duration",      xs4?.let { xs4GetInteger(it, 10) } ?: 0)
+            putInt("_wxmusicvideoobject_duration", xs4?.let { xs4GetInteger(it, 10) } ?: 0)
             putString("_wxmusicvideoobject_musicOperationUrl", xs4?.let { xs4GetString(it, 12) } ?: "")
             if (!albumCoverUrl.isNullOrBlank()) putString("_wxmusicvideoobject_hdAlbumThumbFilePath", albumCoverUrl)
             // musicVipInfo.musicId (xs4 下标 11 = mid, 已带 getlinkclisdkmid_ 前缀): QQ 音乐服务端解析歌曲的关键 ID。
@@ -2508,7 +2538,7 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
             // 原生分享: _wxobject_title = 歌名, _wxobject_description = 歌手 (fy 据此渲染编辑器预览副标题)。
             // 原生 thumbdata = null, 封面走 music_mv_cover_url CDN, 不放字节进 timeline bundle。
             putInt("_wxobject_sdkVer", 0)
-            putString("_wxobject_title",       xs4?.let { xs4GetString(it, 14) }?.takeIf { it.isNotBlank() } ?: content.cardTitle ?: "")
+            putString("_wxobject_title", xs4?.let { xs4GetString(it, 14) }?.takeIf { it.isNotBlank() } ?: content.cardTitle ?: "")
             putString("_wxobject_description", xs4?.let { xs4GetString(it, 4) } ?: "")
             // KEY_IDENTIFIER: pathNewToOld("com.tencent.mm.opensdk.modelmsg.WXMusicVideoObject")
             putString("_wxobject_identifier_", "com.tencent.mm.sdk.openapi.WXMusicVideoObject")
@@ -2622,8 +2652,8 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
                     WeLogger.i(
                         TAG,
                         "openCardEditor music(ting): type=${content.type}, url=$url, " +
-                            "singer=${xs4?.let { xs4GetString(it, 4) }}, mid=${xs4?.let { xs4GetString(it, 11) }}, " +
-                            "coverBytes=${coverBytes?.size}, albumCover=$albumCoverUrl"
+                                "singer=${xs4?.let { xs4GetString(it, 4) }}, mid=${xs4?.let { xs4GetString(it, 11) }}, " +
+                                "coverBytes=${coverBytes?.size}, albumCover=$albumCoverUrl"
                     )
                     true
                 }

@@ -40,7 +40,7 @@ object PreventXposedDetection : SwitchFeature(), IResolveDex {
                     text = {
                         Text("Google Play 版微信无此检测, 开启可能导致闪退, 已关闭功能!")
                     },
-                    confirmButton = { TextButton(onDismiss) { Text("取消") }})
+                    confirmButton = { TextButton(onDismiss) { Text("取消") } })
             }
             return false
         }

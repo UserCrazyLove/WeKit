@@ -65,8 +65,10 @@ open class SequencedLinkedHashMap<K, V> @JvmOverloads constructor(
         @JvmField var hashNext: Node<K, V>?
     ) : MutableMap.MutableEntry<K, V> {
 
-        @JvmField var before: Node<K, V>? = null
-        @JvmField var after: Node<K, V>? = null
+        @JvmField
+        var before: Node<K, V>? = null
+        @JvmField
+        var after: Node<K, V>? = null
 
         override fun setValue(newValue: V): V {
             val old = value

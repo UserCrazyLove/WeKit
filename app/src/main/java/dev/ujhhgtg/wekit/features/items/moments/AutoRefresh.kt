@@ -32,6 +32,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Duration.Companion.minutes
 
 @Feature(name = "自动刷新", categories = ["朋友圈"], description = "定时自动刷新朋友圈列表")
@@ -41,6 +42,20 @@ object AutoRefresh : ClickableFeature(), IResolveDex {
     private const val DEFAULT_INTERVAL_MINUTES = 30L
 
     private var intervalMinutes by WePrefs.prefOption("moments_auto_refresh_interval_minutes", DEFAULT_INTERVAL_MINUTES)
+
+    fun interface IRefreshListener {
+        fun onRefresh()
+    }
+
+    private val refreshListeners = CopyOnWriteArrayList<IRefreshListener>()
+
+    fun addListener(listener: IRefreshListener) {
+        refreshListeners.add(listener)
+    }
+
+    fun removeListener(listener: IRefreshListener) {
+        refreshListeners.remove(listener)
+    }
 
     private var refreshJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -87,8 +102,11 @@ object AutoRefresh : ClickableFeature(), IResolveDex {
     private fun refreshMoments() {
         try {
             WeLogger.d(TAG, "refreshing moments")
-            methodDoFpList.method.invoke(snsLogicSnsServer,
-                1, "@__weixintimtline", false, false, 0)
+            methodDoFpList.method.invoke(
+                snsLogicSnsServer,
+                1, "@__weixintimtline", false, false, 0
+            )
+            refreshListeners.forEach { it.onRefresh() }
         } catch (e: Exception) {
             WeLogger.w(TAG, "exception during refreshing: ${e.message}")
         }

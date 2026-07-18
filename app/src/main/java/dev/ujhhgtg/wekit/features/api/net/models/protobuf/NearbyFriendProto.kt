@@ -8,7 +8,7 @@ import kotlinx.serialization.protobuf.ProtoNumber
 
 @Serializable
 data class NearbyFriendProto(
-    @ProtoNumber(1)  val username: String = "",
-    @ProtoNumber(2)  val nickname: String = "",
-    @ProtoNumber(7)  val sex: Int = 0,
+    @ProtoNumber(1) val username: String = "",
+    @ProtoNumber(2) val nickname: String = "",
+    @ProtoNumber(7) val sex: Int = 0,
 )

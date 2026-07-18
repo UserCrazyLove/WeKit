@@ -355,8 +355,8 @@ object AutoOpenRedPackets : ClickableFeature(), WeDatabaseListenerApi.IInsertLis
                         )
                         ListItem(
                             modifier = Modifier.clickable {
-                                                        RedPacketGroupMemberFilter.showManagerDialog(context)
-                                                    },
+                                RedPacketGroupMemberFilter.showManagerDialog(context)
+                            },
                             supportingContent = { Text("为指定群聊按发送成员设置黑/白名单") },
                             headlineContent = { Text("群聊指定群成员") },
                         )

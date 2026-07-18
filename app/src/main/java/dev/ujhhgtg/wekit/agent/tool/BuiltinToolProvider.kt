@@ -143,13 +143,13 @@ class BuiltinToolProvider(
             "exa-search" to {
                 if (!exaKeyPresent)
                     "此工具当前不可用：用户未配置 Exa Search API Key。" +
-                    "请告知用户前往 WeAgent 设置 → 外部服务 中添加 Exa API Key，或请改用其他搜索工具。"
+                            "请告知用户前往 WeAgent 设置 → 外部服务 中添加 Exa API Key，或请改用其他搜索工具。"
                 else null
             },
             "brave-search" to {
                 if (!braveKeyPresent)
                     "此工具当前不可用：用户未配置 Brave Search API Key。" +
-                    "请告知用户前往 WeAgent 设置 → 外部服务 中添加 Brave Search API Key，或请改用其他搜索工具。"
+                            "请告知用户前往 WeAgent 设置 → 外部服务 中添加 Brave Search API Key，或请改用其他搜索工具。"
                 else null
             },
         )

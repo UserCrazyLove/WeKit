@@ -4,11 +4,11 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import dev.ujhhgtg.wekit.agent.data.entity.ConditionalPromptEntity
+import dev.ujhhgtg.wekit.agent.data.entity.ExternalServiceEntity
 import dev.ujhhgtg.wekit.agent.data.entity.ModelEntity
 import dev.ujhhgtg.wekit.agent.data.entity.ModelProviderEntity
 import dev.ujhhgtg.wekit.agent.data.entity.PerTurnPromptEntity
 import dev.ujhhgtg.wekit.agent.data.entity.PresetPromptEntity
-import dev.ujhhgtg.wekit.agent.data.entity.ExternalServiceEntity
 import dev.ujhhgtg.wekit.agent.data.entity.SettingEntity
 import dev.ujhhgtg.wekit.agent.data.entity.SystemPromptEntity
 import dev.ujhhgtg.wekit.agent.data.entity.WorkspaceEntity

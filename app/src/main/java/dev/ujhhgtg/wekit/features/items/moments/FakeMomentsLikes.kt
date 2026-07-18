@@ -144,11 +144,13 @@ object FakeMomentsLikes : SwitchFeature(), WeMomentsContextMenuApi.IMenuItemsPro
                                 }
                             }
                         },
-                        dismissButton = { TextButton({
-                            onDismiss()
-                            fakeLikeWxIds.remove(snsId)
-                            showToast("已清除伪点赞配置")
-                        }) { Text("清除") } },
+                        dismissButton = {
+                            TextButton({
+                                onDismiss()
+                                fakeLikeWxIds.remove(snsId)
+                                showToast("已清除伪点赞配置")
+                            }) { Text("清除") }
+                        },
                         confirmButton = { TextButton(onDismiss) { Text("取消") } }
                     )
                 }

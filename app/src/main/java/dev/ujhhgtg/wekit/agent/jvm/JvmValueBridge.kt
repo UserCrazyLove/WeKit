@@ -144,6 +144,7 @@ object JvmValueBridge {
                 "true" -> true; "false" -> false
                 else -> throw JvmBridgeException("bool: expects true|false, got '$payload'")
             }
+
             "char" -> payload.firstOrNull() ?: throw JvmBridgeException("char: expects a character")
             "class" -> resolveClass(payload)
             "ref" -> resolveRef(payload)
@@ -198,6 +199,7 @@ object JvmValueBridge {
     private fun isInline(value: Any): Boolean = when (value) {
         is CharSequence, is Boolean, is Char,
         is Byte, is Short, is Int, is Long, is Float, is Double -> true
+
         else -> false
     }
 

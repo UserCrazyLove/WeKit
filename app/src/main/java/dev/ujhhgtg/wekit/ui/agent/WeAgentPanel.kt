@@ -202,7 +202,9 @@ private fun SessionDrawerContent(modifier: Modifier, onClose: () -> Unit) {
                     Surface(
                         color = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
                         shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.fillMaxWidth().clickable { WeAgentService.switchSession(s.id); onClose() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { WeAgentService.switchSession(s.id); onClose() },
                     ) {
                         Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(
@@ -300,7 +302,9 @@ private fun UsageStrip() {
     val used = u.promptTokens ?: u.totalTokens
     val pct = if (ctx != null && ctx > 0 && used != null) (used.toFloat() / ctx).coerceIn(0f, 1f) else null
 
-    Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp)) {
+    Column(Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 8.dp, vertical = 2.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             val parts = buildList {
                 u.promptTokens?.let { add("↑ ${fmtTokens(it)}") }
@@ -325,7 +329,9 @@ private fun UsageStrip() {
             Spacer(Modifier.height(2.dp))
             LinearProgressIndicator(
                 progress = { pct },
-                modifier = Modifier.fillMaxWidth().height(3.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp),
                 color = if (pct >= 0.9f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
@@ -355,7 +361,9 @@ private fun InputBar(
     val isRunning = ballState == WeAgentService.BallState.RUNNING || ballState == WeAgentService.BallState.PENDING_APPROVAL
 
     fun send() {
-        if (text.isNotBlank()) { WeAgentService.sendMessage(text); onTextChange("") }
+        if (text.isNotBlank()) {
+            WeAgentService.sendMessage(text); onTextChange("")
+        }
     }
 
     // --- Queued-message mode ---
@@ -363,7 +371,9 @@ private fun InputBar(
         Surface(
             color = MaterialTheme.colorScheme.surfaceVariant,
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp),
         ) {
             Column(Modifier.padding(horizontal = 6.dp, vertical = 4.dp)) {
                 UsageStrip()
@@ -374,13 +384,17 @@ private fun InputBar(
                     value = queueText,
                     onValueChange = {},
                     readOnly = true,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp),
                     minLines = 2,
                     maxLines = 6,
                     enabled = false,
                 )
                 Row(
-                    Modifier.fillMaxWidth().padding(top = 2.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     PlusMenu(onInsertPreset = onInsertPreset)
@@ -403,7 +417,9 @@ private fun InputBar(
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 6.dp),
     ) {
         Column(Modifier.padding(horizontal = 6.dp, vertical = 4.dp)) {
             UsageStrip()
@@ -414,13 +430,17 @@ private fun InputBar(
                 value = text,
                 onValueChange = onTextChange,
                 placeholder = { Text("给 WeAgent 发消息…") },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp),
                 minLines = 2,
                 maxLines = 6,
             )
             // Action row: [+] left, [Send](./Interrupt) right.
             Row(
-                Modifier.fillMaxWidth().padding(top = 2.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 PlusMenu(onInsertPreset = onInsertPreset)
@@ -478,7 +498,9 @@ private fun PlusMenu(onInsertPreset: (String) -> Unit) {
         else -> systemPrompts.firstOrNull { it.id == currentSystemPromptId }?.name ?: "默认"
     }
 
-    fun close() { expanded = false; submenu = PlusSubmenu.NONE }
+    fun close() {
+        expanded = false; submenu = PlusSubmenu.NONE
+    }
 
     Box {
         IconButton(onClick = { expanded = true; submenu = PlusSubmenu.NONE }) {
@@ -775,7 +797,7 @@ private fun MessageBubble(
                                         Text(
                                             if (confirmGoBack) "确认回到此处" else "回到此处",
                                             color = if (confirmGoBack) MaterialTheme.colorScheme.error
-                                                    else LocalContentColor.current,
+                                            else LocalContentColor.current,
                                         )
                                     },
                                     leadingIcon = {
@@ -783,7 +805,7 @@ private fun MessageBubble(
                                             MaterialSymbols.Outlined.History,
                                             contentDescription = null,
                                             tint = if (confirmGoBack) MaterialTheme.colorScheme.error
-                                                   else LocalContentColor.current,
+                                            else LocalContentColor.current,
                                         )
                                     },
                                     enabled = !sessionRunning,
@@ -1003,7 +1025,7 @@ private fun ReasoningCard(
                                         Color.Transparent,
                                     ),
                                     start = Offset(size.width * (shimmerProgress - 0.4f), 0f),
-                                    end   = Offset(size.width * (shimmerProgress + 0.4f), size.height),
+                                    end = Offset(size.width * (shimmerProgress + 0.4f), size.height),
                                 )
                             )
                         } else Modifier
@@ -1075,7 +1097,9 @@ private fun ApprovalCard() {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
     ) {
         Column(Modifier.padding(10.dp)) {
             Text("请求执行工具「${p.pending.toolName}」", style = MaterialTheme.typography.titleSmall)
@@ -1088,7 +1112,9 @@ private fun ApprovalCard() {
                 value = reason,
                 onValueChange = { reason = it },
                 label = { Text("拒绝理由（可选）") },
-                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 6.dp),
             )
             Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 TextButton(onClick = {

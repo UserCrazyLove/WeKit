@@ -37,6 +37,7 @@ object WeXmlParserApi : ApiFeature(), IResolveDex {
     override fun onEnable() {
         methodXmlParser.hookAfter {
             val param = this
+
             @Suppress("UNCHECKED_CAST")
             val result = result as? MutableMap<String, Any?>? ?: return@hookAfter
             listeners.forEach { listener ->

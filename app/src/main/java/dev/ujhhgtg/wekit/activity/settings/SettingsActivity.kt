@@ -89,7 +89,6 @@ import dev.ujhhgtg.wekit.ui.content.MiuixStackNavigator
 import dev.ujhhgtg.wekit.ui.content.liquid.vibrancy
 import dev.ujhhgtg.wekit.ui.utils.CommonContextWrapper
 import dev.ujhhgtg.wekit.ui.utils.theme.ModuleTheme
-import dev.ujhhgtg.wekit.ui.utils.theme.ThemeSettings
 import dev.ujhhgtg.wekit.utils.WeLogger
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.BasicComponent
@@ -183,15 +182,17 @@ private fun SettingsRoot(onFinish: () -> Unit) {
 
     MiuixStackNavigator(stack = stack, onExitRoot = onFinish) { screen, push, pop ->
         when (screen) {
-            SettingsNavTarget.Main      -> MainPagerScreen(
+            SettingsNavTarget.Main -> MainPagerScreen(
                 onOpenCategory = { push(SettingsNavTarget.Category(it)) },
-                onOpenLicense  = { push(SettingsNavTarget.License) },
+                onOpenLicense = { push(SettingsNavTarget.License) },
             )
+
             is SettingsNavTarget.Category -> CategoryDetailScreen(
                 categoryName = screen.name,
                 onBack = pop,
             )
-            SettingsNavTarget.License   -> LicenseScreen(
+
+            SettingsNavTarget.License -> LicenseScreen(
                 onBack = pop,
             )
         }

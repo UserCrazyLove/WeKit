@@ -63,7 +63,7 @@ fun InjectedUiTheme(
 //            CompositionLocalProvider(
 //                LocalContentColor provides MiuixTheme.colorScheme.onBackground,
 //            ) {
-                content()
+            content()
 //            }
         }
 //        }

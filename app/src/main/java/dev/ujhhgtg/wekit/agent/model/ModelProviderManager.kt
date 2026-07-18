@@ -119,7 +119,7 @@ object ModelProviderManager {
             return Result.failure(LlmException("Anthropic 不支持自动获取模型列表，请手动添加。"))
         }
         val isGemini = provider.type == ModelProviderType.GEMINI_GENERATE_CONTENT
-            || provider.type == ModelProviderType.GEMINI_INTERACTIONS
+                || provider.type == ModelProviderType.GEMINI_INTERACTIONS
         val resolvedBase = provider.baseUrl.trimEnd('/')
         val endpoint = "$resolvedBase/models"
         return runCatching {

@@ -50,9 +50,10 @@ object UiAutomator {
         }
         return when (val obj = JvmObjectRegistry.resolve(windowRef)
             ?: throw JvmBridgeException("No live handle '$windowRef'")) {
-            is View     -> obj.rootView
+            is View -> obj.rootView
             is Activity -> obj.window?.decorView
                 ?: throw JvmBridgeException("Activity handle has no decorView")
+
             is android.view.Window -> obj.decorView
             else -> throw JvmBridgeException("'$windowRef' is not a View/Activity/Window")
         }
@@ -85,19 +86,19 @@ object UiAutomator {
     else "NO_ID"
 
     private fun View.visStr(): String = when (visibility) {
-        View.VISIBLE  -> "vis"
+        View.VISIBLE -> "vis"
         View.INVISIBLE -> "inv"
-        else           -> "gone"
+        else -> "gone"
     }
 
     private fun View.textStr(): String? = (this as? TextView)?.text?.toString()?.takeIf { it.isNotEmpty() }
 
     private fun View.flagStr(): String = buildList {
-        if (isClickable)     add("clickable")
+        if (isClickable) add("clickable")
         if (isLongClickable) add("long-clickable")
-        if (isFocusable)     add("focusable")
-        if (isFocused)       add("focused")
-        if (!isEnabled)      add("DISABLED")
+        if (isFocusable) add("focusable")
+        if (isFocused) add("focused")
+        if (!isEnabled) add("DISABLED")
     }.joinToString(" ")
 
     // -----------------------------------------------------------------------------------------
@@ -130,8 +131,8 @@ object UiAutomator {
             lines.append("  [${b.left},${b.top} ${b.width()}×${b.height()}]")
             lines.append("  ${v.visStr()}")
             val flags = v.flagStr(); if (flags.isNotEmpty()) lines.append("  $flags")
-            if (text != null)  lines.append("  text=\"$text\"")
-            if (desc != null)  lines.append("  desc=\"$desc\"")
+            if (text != null) lines.append("  text=\"$text\"")
+            if (desc != null) lines.append("  desc=\"$desc\"")
             lines.append("\n")
         })
         return lines.toString().trimEnd().ifEmpty { "(no views)" }
@@ -151,13 +152,13 @@ object UiAutomator {
         val results = mutableListOf<String>()
         walk(decor, { v, _ ->
             if (onlyInteractive && !(v.isClickable || v.isLongClickable || v is EditText)) return@walk
-            val vText  = v.textStr().orEmpty()
-            val vDesc  = v.contentDescription?.toString().orEmpty()
-            val vId    = v.idName()
+            val vText = v.textStr().orEmpty()
+            val vDesc = v.contentDescription?.toString().orEmpty()
+            val vId = v.idName()
             val vClass = v.javaClass.simpleName
-            val textOk  = text  == null || vText.contains(text, ignoreCase = true)
-                       || vDesc.contains(text, ignoreCase = true)
-            val idOk    = id    == null || vId.contains(id, ignoreCase = true)
+            val textOk = text == null || vText.contains(text, ignoreCase = true)
+                    || vDesc.contains(text, ignoreCase = true)
+            val idOk = id == null || vId.contains(id, ignoreCase = true)
             val classOk = className == null || vClass.contains(className, ignoreCase = true)
             if (textOk && idOk && classOk) {
                 val handle = JvmObjectRegistry.store(v)
@@ -204,7 +205,8 @@ object UiAutomator {
      * works in-process without extra permissions; respects FLAG_SECURE (those areas are black).
      */
     fun screenshot(targetView: View, maxDim: Int): Bitmap {
-        val w = targetView.width; val h = targetView.height
+        val w = targetView.width
+        val h = targetView.height
         if (w <= 0 || h <= 0) throw JvmBridgeException("View has zero size ($w×$h) — not yet laid out?")
         val scale = if (maxDim > 0 && (w > maxDim || h > maxDim))
             maxDim.toFloat() / maxOf(w, h).toFloat() else 1f
@@ -235,9 +237,9 @@ object UiAutomator {
         val (lx, ly) = toDecorLocal(decor, screenX, screenY)
         val now = SystemClock.uptimeMillis()
         val down = MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, lx, ly, 0)
-        val up   = MotionEvent.obtain(now, now + 50, MotionEvent.ACTION_UP, lx, ly, 0)
+        val up = MotionEvent.obtain(now, now + 50, MotionEvent.ACTION_UP, lx, ly, 0)
         decor.dispatchTouchEvent(down); down.recycle()
-        decor.dispatchTouchEvent(up);   up.recycle()
+        decor.dispatchTouchEvent(up); up.recycle()
     }
 
     /** Synthesise [count] taps at the same position with [intervalMs] between each DOWN+UP. */
@@ -279,7 +281,7 @@ object UiAutomator {
         val stepDelay = durationMs / n
         for (i in 1 until n) {
             Thread.sleep(stepDelay)
-            val t  = SystemClock.uptimeMillis()
+            val t = SystemClock.uptimeMillis()
             val fx = lx1 + (lx2 - lx1) * i / (n - 1)
             val fy = ly1 + (ly2 - ly1) * i / (n - 1)
             val mv = MotionEvent.obtain(downTime, t, MotionEvent.ACTION_MOVE, fx, fy, 0)
@@ -304,7 +306,8 @@ object UiAutomator {
     )
 
     @SuppressLint("StaticFieldLeak")
-    @Volatile var activeGesture: GestureState? = null
+    @Volatile
+    var activeGesture: GestureState? = null
 
     /** Start a held touch gesture (ACTION_DOWN). Auto-cancels any previous active gesture. */
     fun touchDown(decor: View, screenX: Float, screenY: Float) {
@@ -357,9 +360,12 @@ object UiAutomator {
      */
     fun setText(v: View, text: String) {
         when (v) {
-            is EditText  -> { v.setText(text); v.setSelection(text.length) }
-            is TextView  -> v.text = text
-            else         -> throw JvmBridgeException("View is not a TextView/EditText: ${v.javaClass.name}")
+            is EditText -> {
+                v.setText(text); v.setSelection(text.length)
+            }
+
+            is TextView -> v.text = text
+            else -> throw JvmBridgeException("View is not a TextView/EditText: ${v.javaClass.name}")
         }
     }
 
@@ -373,7 +379,7 @@ object UiAutomator {
             ?: throw JvmBridgeException("No top-most activity for key event")
         val now = SystemClock.uptimeMillis()
         val down = KeyEvent(now, now, KeyEvent.ACTION_DOWN, keyCode, 0)
-        val up   = KeyEvent(now, now, KeyEvent.ACTION_UP,   keyCode, 0)
+        val up = KeyEvent(now, now, KeyEvent.ACTION_UP, keyCode, 0)
         act.dispatchKeyEvent(down)
         act.dispatchKeyEvent(up)
     }

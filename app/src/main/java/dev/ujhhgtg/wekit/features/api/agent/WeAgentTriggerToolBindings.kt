@@ -94,6 +94,7 @@ object WeAgentTriggerToolBindings {
                     System.currentTimeMillis() + offset
                 } else atEpochMillis
             }
+
             else -> null
         }
         // Validate the kind-specific field is present & sane.
@@ -328,6 +329,7 @@ object WeAgentTriggerToolBindings {
                 t.cronExpr?.let { append(" cron='$it'") }
                 t.atEpochMillis?.let { append(" at $it") }
             }
+
             TriggerType.MESSAGE, TriggerType.SQL -> {
                 t.conditionsJson?.let { append(" conditions=$it") }
                 append(" buffer(debounce=${t.bufferDebounceMillis}ms,max=${t.bufferMaxEvents},wait=${t.bufferMaxWaitMillis}ms)")

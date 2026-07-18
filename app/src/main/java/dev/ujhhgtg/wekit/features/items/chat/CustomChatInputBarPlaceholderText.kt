@@ -27,7 +27,6 @@ import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.api.core.WeDatabaseListenerApi
-import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.features.api.core.models.MessageInfo
 import dev.ujhhgtg.wekit.features.api.core.models.MessageType
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
@@ -89,14 +88,16 @@ object CustomChatInputBarPlaceholderText : ClickableFeature(), IResolveDex, WeDa
             val canSend = args[0] as Boolean
             if (canSend) return@hookAfter
 
-            thisObject.reflekt().invokeMethod("setHint", text
-                .replace($$"$totalCount", totC.toString())
-                .replace($$"$textCount", textC.toString())
-                .replace($$"$charCount", charC.toString())
-                .replace($$"$emojiCount", emojiC.toString())
-                .replace($$"$transferCount", transferC.toString())
-                .replace($$"$redPacketCount", redPacketC.toString())
-                .replace($$"$fileCount", fileC.toString()))
+            thisObject.reflekt().invokeMethod(
+                "setHint", text
+                    .replace($$"$totalCount", totC.toString())
+                    .replace($$"$textCount", textC.toString())
+                    .replace($$"$charCount", charC.toString())
+                    .replace($$"$emojiCount", emojiC.toString())
+                    .replace($$"$transferCount", transferC.toString())
+                    .replace($$"$redPacketCount", redPacketC.toString())
+                    .replace($$"$fileCount", fileC.toString())
+            )
         }
     }
 
@@ -110,7 +111,7 @@ object CustomChatInputBarPlaceholderText : ClickableFeature(), IResolveDex, WeDa
 
         val isSend = values.getAsInteger("isSend")
         val type = values.getAsInteger("type")
-        val msgInfo = MessageInfo(WeMessageApi.convertMsgInfoInstanceFromContentValues(values))
+        val msgInfo = MessageInfo.fromContentValues(values)
         if (isSend == 0) return
 
         if (type == MessageType.TEXT.code) {
@@ -190,7 +191,9 @@ object CustomChatInputBarPlaceholderText : ClickableFeature(), IResolveDex, WeDa
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
                         ) {
                             PLACEHOLDERS.forEach { ph ->
                                 Box(

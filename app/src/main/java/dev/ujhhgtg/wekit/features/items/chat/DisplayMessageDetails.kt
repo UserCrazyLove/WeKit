@@ -39,13 +39,14 @@ object DisplayMessageDetails : SwitchFeature(),
                 777005, "查看详情",
                 ChatInfoIcon, MaterialSymbols.Outlined.Info, { _ -> true },
                 // per-message detail dialog; has no meaning for a batch selection
-                multiSelect = WeChatMessageContextMenuApi.MultiSelectSupport.Unsupported)
+                multiSelect = WeChatMessageContextMenuApi.MultiSelectSupport.Unsupported
+            )
             { view, _, msgInfo ->
                 val displayItems = mutableListOf<Pair<String, String>>()
                 displayItems += "类型" to msgInfo.typeCode.toString()
                 displayItems += "ID" to msgInfo.id.toString()
                 displayItems += "对方/群聊 ID" to msgInfo.talker
-                displayItems += "真实发送者 ID" to msgInfo.sender
+                displayItems += "发送者 ID" to msgInfo.sender
                 displayItems += "内容" to msgInfo.content
 
                 showComposeDialog(view.context) {
@@ -69,7 +70,8 @@ object DisplayMessageDetails : SwitchFeature(),
                                 }
                             }
                         },
-                        confirmButton = { Button(onDismiss) { Text("关闭") } })
+                        confirmButton = { Button(onDismiss) { Text("关闭") } }
+                    )
                 }
             }
         )

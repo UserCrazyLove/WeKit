@@ -1,7 +1,6 @@
 package dev.ujhhgtg.wekit.utils
 
 import android.app.ActivityManager
-import android.content.Context
 import android.os.Process
 import dev.ujhhgtg.wekit.utils.android.getSystemService
 

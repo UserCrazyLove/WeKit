@@ -2,8 +2,8 @@ package dev.ujhhgtg.wekit.features.items.contacts
 
 import android.app.Activity
 import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi
-import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi.PreferenceItem
 import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi.IContactInfoProvider
+import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi.PreferenceItem
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
 import dev.ujhhgtg.wekit.utils.android.copyToClipboard
@@ -18,11 +18,13 @@ object ShowWxIdInContactDetails : SwitchFeature(), IContactInfoProvider {
     override fun getContactInfoItem(activity: Activity): List<PreferenceItem> {
         val wxId = activity.currentWxId
 
-        return listOf(PreferenceItem(
-            key = PREF_KEY,
-            title = "微信 ID: ${wxId ?: "获取失败"}",
-            position = 1
-        ))
+        return listOf(
+            PreferenceItem(
+                key = PREF_KEY,
+                title = "微信 ID: ${wxId ?: "获取失败"}",
+                position = 1
+            )
+        )
     }
 
     override fun onItemClick(activity: Activity, key: String): Boolean {

@@ -52,8 +52,10 @@ object QuickRevokeAndEdit : SwitchFeature(), WeChatMessageContextMenuApi.IMenuIt
         WeMessageApi.revokeMsg(msgInfo)
         if (msgInfo.type == MessageType.QUOTE) {
             chatFooter.lastText = msgInfo.quoteMsgActualContent ?: ""
-            WeMessageApi.setReferringMessage(chatFooter,
-                WeMessageApi.getMsgInfoInstanceByMsgSvrId(msgInfo.toQuoteMessage()!!.svrid, msgInfo.talker))
+            WeMessageApi.setReferringMessage(
+                chatFooter,
+                WeMessageApi.getMsgInfoInstanceByMsgSvrId(msgInfo.toQuoteMessage()!!.svrid, msgInfo.talker)
+            )
         } else {
             chatFooter.lastText = msgInfo.actualContent
         }

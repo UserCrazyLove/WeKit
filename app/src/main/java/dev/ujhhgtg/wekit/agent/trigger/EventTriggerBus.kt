@@ -43,7 +43,8 @@ class EventTriggerBus(
     /** Epoch millis until which SQL events are suppressed (agent's own writes). 0 = not suppressed. */
     private val sqlSuppressedUntil = AtomicLong(0)
 
-    @Volatile private var registered = false
+    @Volatile
+    private var registered = false
 
     /** Opens/extends a suppression window so the agent's own SQL writes don't fire SQL triggers. */
     fun suppressSqlBriefly(windowMillis: Long) {

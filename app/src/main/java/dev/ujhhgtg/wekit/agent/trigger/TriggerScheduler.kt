@@ -107,6 +107,7 @@ class TriggerScheduler(
             val secs = trigger.intervalSeconds?.takeIf { it > 0 } ?: return null
             now + secs * 1000
         }
+
         ScheduleKind.DAILY -> {
             val minuteOfDay = trigger.dailyMinuteOfDay?.takeIf { it in 0..1439 } ?: return null
             val cal = Calendar.getInstance().apply {
@@ -119,14 +120,17 @@ class TriggerScheduler(
             if (cal.timeInMillis <= now) cal.add(Calendar.DAY_OF_MONTH, 1)
             cal.timeInMillis
         }
+
         ScheduleKind.CRON -> {
             val expr = trigger.cronExpr ?: return null
             CronSchedule.nextAfter(expr, now)
         }
+
         ScheduleKind.ONCE -> {
             val at = trigger.atEpochMillis ?: return null
             at.takeIf { it > now }
         }
+
         null -> null
     }
 }

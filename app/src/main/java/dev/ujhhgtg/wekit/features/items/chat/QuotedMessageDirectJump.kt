@@ -1,12 +1,12 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
 import dev.ujhhgtg.wekit.utils.enumValueOfClass
-import dev.ujhhgtg.reflekt.reflekt
 
 @Feature(name = "引用消息直达", categories = ["聊天"], description = "点击被引用消息时直接跳转至对应消息")
 object QuotedMessageDirectJump : SwitchFeature(), IResolveDex {

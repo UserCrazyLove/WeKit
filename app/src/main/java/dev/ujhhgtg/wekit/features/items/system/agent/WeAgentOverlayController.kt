@@ -7,8 +7,6 @@ import android.view.View
 import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
 import dev.ujhhgtg.wekit.features.api.agent.WeAgentService
-import dev.ujhhgtg.wekit.features.items.system.agent.WeAgentOverlayController.foregroundOnly
-import dev.ujhhgtg.wekit.features.items.system.agent.WeAgentOverlayController.shouldBeVisible
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.ui.agent.WeAgentBall
 import dev.ujhhgtg.wekit.ui.agent.WeAgentPanel
@@ -48,14 +46,17 @@ object WeAgentOverlayController {
     private var dragStartY = 0
 
     /** Whether the ball window is currently attached to the [WindowManager]. */
-    @Volatile var isShown = false
+    @Volatile
+    var isShown = false
         private set
 
     /** Whether the feature is enabled (user wants the overlay). Distinct from actual attachment. */
-    @Volatile private var desiredVisible = false
+    @Volatile
+    private var desiredVisible = false
 
     /** When true, the ball is only attached while WeChat is in the foreground (§ 界面 setting). */
-    @Volatile private var foregroundOnly = false
+    @Volatile
+    private var foregroundOnly = false
 
     fun canDrawOverlays(): Boolean = Settings.canDrawOverlays(HostInfo.application)
 
@@ -100,7 +101,7 @@ object WeAgentOverlayController {
     /** True when the ball should currently be attached given desire, permission, and foreground. */
     private fun shouldBeVisible(): Boolean =
         desiredVisible && canDrawOverlays() &&
-            (!foregroundOnly || WeChatForegroundTracker.isForeground)
+                (!foregroundOnly || WeChatForegroundTracker.isForeground)
 
     /** Attaches or detaches the ball window to match [shouldBeVisible]. Must run on the main thread. */
     private fun reconcile() {

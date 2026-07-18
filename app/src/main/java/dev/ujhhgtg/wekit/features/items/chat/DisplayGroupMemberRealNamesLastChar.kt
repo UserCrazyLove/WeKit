@@ -14,7 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import dev.ujhhgtg.wekit.features.api.net.WePacketHelper
-import dev.ujhhgtg.wekit.features.api.net.models.protobuf.BeforeTransferProto
+import dev.ujhhgtg.wekit.features.api.net.models.protobuf.BeforeTransferRespProto
 import dev.ujhhgtg.wekit.features.api.net.models.protobuf.BeforeTransferReqProto
 import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi
 import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi.IContactInfoProvider
@@ -22,9 +22,6 @@ import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi.PreferenceItem
 import dev.ujhhgtg.wekit.features.api.ui.WeCurrentConversationApi
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
-import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRealNamesLastChar.actualFetchRealName
-import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRealNamesLastChar.cacheFile
-import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRealNamesLastChar.pendingOrQueried
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.Button
@@ -164,7 +161,7 @@ object DisplayGroupMemberRealNamesLastChar : ClickableFeature(), IContactInfoPro
             ) {
                 onSuccess { bytes ->
                     val realName = bytes
-                        ?.let { runCatching { BeforeTransferProto.decode(it) }.getOrNull() }
+                        ?.let { runCatching { BeforeTransferRespProto.decode(it) }.getOrNull() }
                         ?.maskedRealName
 
                     if (realName != null) {

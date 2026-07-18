@@ -66,6 +66,7 @@ fun MarkdownText(
     )
     Column(modifier) { MdBlocks(blocks, style, colors) }
 }
+
 private data class MdColors(
     val text: Color,
     val codeBg: Color,
@@ -105,7 +106,9 @@ private fun MdBlocks(blocks: List<MdBlock>, style: TextStyle, colors: MdColors) 
 
             is MdBlock.CodeBlock -> CodeBlock(block.code, style, colors)
 
-            is MdBlock.Quote -> Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            is MdBlock.Quote -> Row(Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)) {
                 Box(
                     Modifier
                         .padding(end = 8.dp)
@@ -186,7 +189,9 @@ private fun TableBlock(table: MdBlock.Table, style: TextStyle, colors: MdColors)
         }
     }
 
-    Box(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+    Box(Modifier
+        .fillMaxWidth()
+        .horizontalScroll(rememberScrollState())) {
         Column(
             Modifier
                 .clip(RoundedCornerShape(8.dp))
@@ -216,11 +221,17 @@ private fun TableBlock(table: MdBlock.Table, style: TextStyle, colors: MdColors)
 
 @Composable
 private fun HDivider(colors: MdColors) =
-    Box(Modifier.fillMaxWidth().height(1.dp).background(colors.divider))
+    Box(Modifier
+        .fillMaxWidth()
+        .height(1.dp)
+        .background(colors.divider))
 
 @Composable
 private fun VDivider(colors: MdColors) =
-    Box(Modifier.width(1.dp).fillMaxHeight().background(colors.divider))
+    Box(Modifier
+        .width(1.dp)
+        .fillMaxHeight()
+        .background(colors.divider))
 
 @Composable
 private fun CodeBlock(code: String, style: TextStyle, colors: MdColors) {
@@ -294,13 +305,17 @@ private fun AnnotatedString.Builder.emitInline(
     var i = start
     val literal = StringBuilder()
     fun flush() {
-        if (literal.isNotEmpty()) { append(literal.toString()); literal.setLength(0) }
+        if (literal.isNotEmpty()) {
+            append(literal.toString()); literal.setLength(0)
+        }
     }
     while (i < end) {
         val c = text[i]
         when {
             // Backslash escape: the next char is taken literally.
-            c == '\\' && i + 1 < end -> { literal.append(text[i + 1]); i += 2 }
+            c == '\\' && i + 1 < end -> {
+                literal.append(text[i + 1]); i += 2
+            }
 
             // Inline code: verbatim, no nested parsing.
             c == '`' -> {
@@ -311,7 +326,9 @@ private fun AnnotatedString.Builder.emitInline(
                         append(text.substring(i + 1, close))
                     }
                     i = close + 1
-                } else { literal.append(c); i++ }
+                } else {
+                    literal.append(c); i++
+                }
             }
 
             // Link: [label](url)
@@ -326,7 +343,9 @@ private fun AnnotatedString.Builder.emitInline(
                         )
                     ) { emitInline(text, parsed.labelStart, parsed.labelEnd, codeBg, linkColor) }
                     i = parsed.next
-                } else { literal.append(c); i++ }
+                } else {
+                    literal.append(c); i++
+                }
             }
 
             // ***bold italic***
@@ -338,7 +357,9 @@ private fun AnnotatedString.Builder.emitInline(
                         emitInline(text, i + 3, close, codeBg, linkColor)
                     }
                     i = close + 3
-                } else { literal.append(c); i++ }
+                } else {
+                    literal.append(c); i++
+                }
             }
 
             // **bold**
@@ -351,7 +372,9 @@ private fun AnnotatedString.Builder.emitInline(
                         emitInline(text, i + 2, close, codeBg, linkColor)
                     }
                     i = close + 2
-                } else { literal.append(c); i++ }
+                } else {
+                    literal.append(c); i++
+                }
             }
 
             // ~~strikethrough~~
@@ -363,7 +386,9 @@ private fun AnnotatedString.Builder.emitInline(
                         emitInline(text, i + 2, close, codeBg, linkColor)
                     }
                     i = close + 2
-                } else { literal.append(c); i++ }
+                } else {
+                    literal.append(c); i++
+                }
             }
 
             // *italic* / _italic_
@@ -375,10 +400,14 @@ private fun AnnotatedString.Builder.emitInline(
                         emitInline(text, i + 1, close, codeBg, linkColor)
                     }
                     i = close + 1
-                } else { literal.append(c); i++ }
+                } else {
+                    literal.append(c); i++
+                }
             }
 
-            else -> { literal.append(c); i++ }
+            else -> {
+                literal.append(c); i++
+            }
         }
     }
     flush()
@@ -392,9 +421,13 @@ private fun parseLink(text: String, open: Int, end: Int): ParsedLink? {
     var i = open
     while (i < end) {
         val ch = text[i]
-        if (ch == '\\') { i += 2; continue }
+        if (ch == '\\') {
+            i += 2; continue
+        }
         if (ch == '[') depth++
-        else if (ch == ']') { depth--; if (depth == 0) break }
+        else if (ch == ']') {
+            depth--; if (depth == 0) break
+        }
         i++
     }
     val labelEnd = i
@@ -423,11 +456,15 @@ private fun findCloser(text: String, start: Int, end: Int, delim: String): Int {
         val ch = text[i]
         when {
             ch == '\\' -> i += 2
-            ch == '`' -> { val c = text.indexOf('`', i + 1); i = if (c in 0 until end) c + 1 else i + 1 }
+            ch == '`' -> {
+                val c = text.indexOf('`', i + 1); i = if (c in 0 until end) c + 1 else i + 1
+            }
+
             i + delim.length <= end && text.regionMatches(i, delim, 0, delim.length) -> {
                 // A closer can't sit right at the opening (empty span).
                 if (i > start) return i else i++
             }
+
             else -> i++
         }
     }
@@ -443,6 +480,7 @@ private sealed interface MdBlock {
     data class CodeBlock(val code: String) : MdBlock
     data class Quote(val children: List<MdBlock>) : MdBlock
     data class ListBlock(val ordered: Boolean, val start: Int, val items: List<ListItem>) : MdBlock
+
     /** One list item; [checked] is null for a plain item, true/false for a `[x]`/`[ ]` task item. */
     data class ListItem(val checked: Boolean?, val blocks: List<MdBlock>)
     data class Table(val header: List<String>, val align: List<MdAlign>, val rows: List<List<String>>) : MdBlock
@@ -457,10 +495,13 @@ private val ruleRe = Regex("""^ {0,3}([-*_])( *\1){2,} *$""")
 private val fenceRe = Regex("""^ {0,3}(`{3,}|~{3,})\s*(\S*)\s*$""")
 private val bulletRe = Regex("""^( *)([-*+])\s+(.*)$""")
 private val orderedRe = Regex("""^( *)(\d{1,9})[.)]\s+(.*)$""")
+
 // A task-list marker at the start of an item's content: `[ ]`, `[x]`, or `[X]` then a space.
 private val taskMarkerRe = Regex("""^\[([ xX])]\s+(.*)$""")
+
 // A GFM table delimiter row: pipe-separated cells of dashes with optional leading/trailing colons.
 private val tableDelimRe = Regex("""^ {0,3}\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$""")
+
 // An image: ![alt](url). URL may not contain ')' — good enough for the common case.
 private val imageRe = Regex("""!\[([^\]]*)]\(\s*([^)\s]+)(?:\s+"[^"]*")?\s*\)""")
 
@@ -483,12 +524,16 @@ private fun parseBlockSpans(lines: List<String>, from: Int): List<BlockSpan> {
     val blocks = mutableListOf<BlockSpan>()
     var i = from
     var start = from
-    fun emit(b: MdBlock) { blocks += BlockSpan(start, b) }
+    fun emit(b: MdBlock) {
+        blocks += BlockSpan(start, b)
+    }
     while (i < lines.size) {
         val line = lines[i]
 
         // Blank line: skip.
-        if (line.isBlank()) { i++; continue }
+        if (line.isBlank()) {
+            i++; continue
+        }
 
         // Everything below emits the block that begins on this line.
         start = i
@@ -503,7 +548,9 @@ private fun parseBlockSpans(lines: List<String>, from: Int): List<BlockSpan> {
                 val l = lines[i]
                 if (l.trimStart().startsWith(marker.substring(0, 1).repeat(3)) &&
                     l.trim().all { it == marker[0] } && l.trim().length >= marker.length
-                ) { i++; break }
+                ) {
+                    i++; break
+                }
                 if (body.isNotEmpty()) body.append('\n')
                 body.append(l)
                 i++
@@ -513,7 +560,9 @@ private fun parseBlockSpans(lines: List<String>, from: Int): List<BlockSpan> {
         }
 
         // Horizontal rule.
-        if (ruleRe.matches(line)) { emit(MdBlock.Rule); i++; continue }
+        if (ruleRe.matches(line)) {
+            emit(MdBlock.Rule); i++; continue
+        }
 
         // ATX heading.
         val h = headingRe.matchEntire(line.trimStart())
@@ -546,8 +595,11 @@ private fun parseBlockSpans(lines: List<String>, from: Int): List<BlockSpan> {
         if (line.contains('|') && i + 1 < lines.size && tableDelimRe.matches(lines[i + 1])) {
             val header = splitRow(line)
             val align = splitRow(lines[i + 1]).map { cell ->
-                val l = cell.startsWith(":"); val r = cell.endsWith(":")
-                when { l && r -> MdAlign.CENTER; r -> MdAlign.RIGHT; else -> MdAlign.LEFT }
+                val l = cell.startsWith(":")
+                val r = cell.endsWith(":")
+                when {
+                    l && r -> MdAlign.CENTER; r -> MdAlign.RIGHT; else -> MdAlign.LEFT
+                }
             }
             i += 2
             val rows = mutableListOf<List<String>>()
@@ -592,11 +644,13 @@ private class IncrementalMarkdownParser {
 
         // Reuse only if the stable prefix [0, resumeLine) is byte-identical to last time.
         val reusable = resumeLine in 0..lines.size &&
-            resumeLine <= prevLines.size &&
-            sameUpTo(lines, prevLines, resumeLine)
+                resumeLine <= prevLines.size &&
+                sameUpTo(lines, prevLines, resumeLine)
 
         val spans = if (reusable) parseBlockSpans(lines, resumeLine)
-        else { stableBlocks = emptyList(); parseBlockSpans(lines, 0) }
+        else {
+            stableBlocks = emptyList(); parseBlockSpans(lines, 0)
+        }
 
         val result: List<MdBlock>
         if (spans.isEmpty()) {
@@ -628,9 +682,17 @@ private fun splitRow(line: String): List<String> {
     val s = line.trim()
     while (k < s.length) {
         when (val ch = s[k]) {
-            '\\' if k + 1 < s.length -> { cur.append(ch).append(s[k + 1]); k += 2 }
-            '|' -> { cells += cur.toString().trim(); cur.setLength(0); k++ }
-            else -> { cur.append(ch); k++ }
+            '\\' if k + 1 < s.length -> {
+                cur.append(ch).append(s[k + 1]); k += 2
+            }
+
+            '|' -> {
+                cells += cur.toString().trim(); cur.setLength(0); k++
+            }
+
+            else -> {
+                cur.append(ch); k++
+            }
         }
     }
     cells += cur.toString().trim()
@@ -686,7 +748,9 @@ private fun parseList(lines: List<String>, from: Int): Pair<MdBlock.ListBlock, I
     var i = from
     while (i < lines.size) {
         val line = lines[i]
-        if (line.isBlank()) { i++; continue }
+        if (line.isBlank()) {
+            i++; continue
+        }
         // A marker at the base indent with the same ordering continues this list; anything else
         // (shallower, deeper, different type, or a non-list line) ends it. Deeper items are folded
         // into the current item below as continuation lines and re-parsed recursively.
@@ -709,10 +773,13 @@ private fun parseList(lines: List<String>, from: Int): Pair<MdBlock.ListBlock, I
         i++
         while (i < lines.size) {
             val l = lines[i]
-            if (l.isBlank()) { itemLines += ""; i++; continue }
+            if (l.isBlank()) {
+                itemLines += ""; i++; continue
+            }
             val leading = l.length - l.trimStart().length
-            if (leading > baseIndent) { itemLines += l.substring(minOf(m.contentCol, leading)); i++ }
-            else break
+            if (leading > baseIndent) {
+                itemLines += l.substring(minOf(m.contentCol, leading)); i++
+            } else break
         }
         items += MdBlock.ListItem(checked, parseBlocks(itemLines))
     }

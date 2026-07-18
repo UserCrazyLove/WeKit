@@ -69,7 +69,9 @@ class OpenAiChatCompletionsClient(
 
             val delta = choice["delta"]?.jsonObject ?: continue
             delta["content"]?.jsonPrimitive?.contentOrNullSafe()?.let {
-                if (it.isNotEmpty()) { textBuf.append(it); emit(LlmStreamEvent.TextDelta(it)) }
+                if (it.isNotEmpty()) {
+                    textBuf.append(it); emit(LlmStreamEvent.TextDelta(it))
+                }
             }
             // Some providers expose reasoning under `reasoning` or `reasoning_content`.
             (delta["reasoning"] ?: delta["reasoning_content"])?.jsonPrimitive?.contentOrNullSafe()?.let {
@@ -183,6 +185,7 @@ class OpenAiChatCompletionsClient(
      */
     private class ToolCallAccumulator {
         private data class Partial(var id: String = "", var name: String = "", val args: StringBuilder = StringBuilder())
+
         private val byIndex = sortedMapOf<Int, Partial>()
 
         fun accept(obj: JsonObject) {

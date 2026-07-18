@@ -31,6 +31,7 @@ import com.tencent.wcdb.database.SQLiteDatabase
 import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.reflekt.utils.isSubclassOf
 import dev.ujhhgtg.reflekt.utils.makeAccessible
+import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.api.core.WeConversationApi
@@ -52,7 +53,6 @@ import dev.ujhhgtg.wekit.utils.android.getSystemService
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.now
 import dev.ujhhgtg.wekit.utils.reflection.BString
-import java.lang.reflect.Field
 import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
@@ -69,7 +69,7 @@ import java.lang.reflect.Modifier as JavaModifier
 4. 锁屏自动关闭聊天界面
 5. 摇一摇设备关闭聊天界面
 6. 朋友圈信息流
-7. 原生联系人选择页面（转发、建群等）"""
+7. 联系人选择页面"""
 )
 object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputBarListener,
     WeDatabaseListenerApi.IQueryListener {
@@ -90,6 +90,7 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
                 WeConversationApi.setDnd(convId, true)
             }
             WePrefs.putStringSet(KEY_CONTACTS, value)
+            WeConversationApi.reloadConversations()
         }
 
     private object ScreenOffReceiver : BroadcastReceiver() {
@@ -166,9 +167,6 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
         ctx.startActivity(intent)
     }
 
-    private lateinit var contactInfoField: Field
-    private lateinit var usernameField: Field
-
     override fun onEnable() {
         // --- home screen conversation list ---
 
@@ -240,16 +238,14 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
 
             val contacts = args[0] as MutableList<*>
 
-            if (!::contactInfoField.isInitialized) {
-                contactInfoField = contacts[0]!!.reflekt()
-                    .firstField { type { it.name.startsWith("com.tencent.mm.storage") } }
-                    .self
-                usernameField = contactInfoField.type.reflekt()
-                    .firstField {
-                        name = "field_username"
-                        superclass()
-                    }.self.makeAccessible()
-            }
+            val contactInfoField = contacts[0]!!.reflekt()
+                .firstField { type { it.name.startsWith("${PackageNames.WECHAT}.storage") } }
+                .self
+            val usernameField = contactInfoField.type.reflekt()
+                .firstField {
+                    name = "field_username"
+                    superclass()
+                }.self.makeAccessible()
 
             val hiddenContacts = hiddenContacts
 
@@ -413,11 +409,15 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
             }
         }
 
+        // --- command ---
+
         WeChatInputBarApi.addListener(this)
 
         // --- moments feed ---
 
         WeDatabaseListenerApi.addListener(this)
+
+        WeConversationApi.reloadConversations()
     }
 
     override fun onDisable() {
@@ -427,6 +427,7 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
         WeChatInputBarApi.removeListener(this)
         WeDatabaseListenerApi.removeListener(this)
         temporarilyShown = false
+        WeConversationApi.reloadConversations()
     }
 
     /**
@@ -565,7 +566,11 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
 
         if (!looksLikeContactSelectorQuery(sql)) return null
 
-        val condition = "username NOT IN (" +
+        // Qualify the column as rcontact.username to avoid "ambiguous column name" errors
+        // when the query is a JOIN (e.g. "from rcontact, bizinfo" in BrandServiceIndexUI's
+        // subscriber list — both tables have a username column). rewriteConversationListSql
+        // already qualifies its condition; mirror that here.
+        val condition = "rcontact.username NOT IN (" +
                 hidden.joinToString(",") { "'${it.replace("'", "''")}'" } + ")"
         return injectCondition(sql, condition)
     }
@@ -700,7 +705,7 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
                                         initialSelectedWxIds = hiddenContacts,
                                         onDismiss = onDismiss
                                     ) {
-                                        showToast("已保存 ${it.size} 个联系人, 重启微信以使更改生效")
+                                        showToast("已保存 ${it.size} 个联系人")
                                         hiddenContacts = it
                                         onDismiss()
                                     }

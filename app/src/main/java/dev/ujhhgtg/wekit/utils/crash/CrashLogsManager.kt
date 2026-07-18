@@ -214,6 +214,7 @@ object CrashLogsManager {
     private const val TAG = "CrashLogsManager"
 
     private const val CRASH_LOGS_DIR = "crashes"
+
     // Unified with the run-log naming style (logs/wekit-*.log): "wekit-crash-" prefix plus a
     // dash-separated timestamp precise to the millisecond so multiple crashes per second stay unique.
     private const val CRASH_LOGS_PREFIX = "wekit-crash-"

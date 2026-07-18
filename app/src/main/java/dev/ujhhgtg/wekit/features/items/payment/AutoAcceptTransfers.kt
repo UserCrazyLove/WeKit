@@ -100,7 +100,7 @@ object AutoAcceptTransfers : ClickableFeature(), WeDatabaseListenerApi.IInsertLi
             return
         }
 
-        val msgInfo = MessageInfo(WeMessageApi.convertMsgInfoInstanceFromContentValues(values))
+        val msgInfo = MessageInfo.fromContentValues(values)
 
         val transferMsg = msgInfo.toTransferMessage() ?: run {
             WeLogger.w(TAG, "failed to parse transfer message")

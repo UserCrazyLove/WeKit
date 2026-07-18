@@ -61,8 +61,10 @@ object MonitorGroupMemberOperations : SwitchFeature(), IResolveDex, WeDatabaseLi
         val newRawMembers = values.getAsString("memberlist")
         val newRoomData = values.getAsByteArray("roomdata")
 
-        val cursor = WeDatabaseApi.rawQuery("SELECT memberlist,memberCount,roomdata FROM chatroom WHERE chatroomname = ?",
-            arrayOf(group))
+        val cursor = WeDatabaseApi.rawQuery(
+            "SELECT memberlist,memberCount,roomdata FROM chatroom WHERE chatroomname = ?",
+            arrayOf(group)
+        )
 
         runCatching {
             cursor.use { cursor ->
@@ -77,8 +79,10 @@ object MonitorGroupMemberOperations : SwitchFeature(), IResolveDex, WeDatabaseLi
                 val origRoomData = cursor.getBlob(cursor.getColumnIndex("roomdata"))
                 val origDisplayNames = parseRoomData(origRoomData)
 
-                handleMemberLeave(group, origMembers, origDisplayNames, newRawMembers, newMemberCount,
-                    cursor.getInt(cursor.getColumnIndex("memberCount")))
+                handleMemberLeave(
+                    group, origMembers, origDisplayNames, newRawMembers, newMemberCount,
+                    cursor.getInt(cursor.getColumnIndex("memberCount"))
+                )
                 handleDisplayNameChange(group, origDisplayNames, newRoomData)
             }
         }.onFailure { WeLogger.e(TAG, "failed to handle group member operations", it) }

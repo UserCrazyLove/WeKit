@@ -7,8 +7,8 @@ import android.app.Activity
 import android.app.ActivityThread
 import android.os.IBinder
 import android.util.ArrayMap
-import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.reflekt.utils.makeAccessible
+import dev.ujhhgtg.wekit.utils.WeLogger
 
 private val mActivitiesField = ActivityThread::class.java.getDeclaredField("mActivities").makeAccessible()
 private val pausedField = ActivityThread.ActivityClientRecord::class.java.getDeclaredField("paused").makeAccessible()

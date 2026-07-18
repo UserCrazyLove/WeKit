@@ -114,7 +114,7 @@ object WePacketHelper : ApiFeature(), IResolveDex {
             fields {
                 countMin(10)
                 add { type(classProtoBase.clazz) }
-                add { type(classProtoBase.clazz)  }
+                add { type(classProtoBase.clazz) }
                 add { type = "java.lang.String" }
             }
         }
@@ -568,7 +568,7 @@ object WePacketHelper : ApiFeature(), IResolveDex {
                             if (rrObj != null) {
                                 val respWrapper = rrObj.reflekt().getField("b", superclass = true)!!
                                 val protoObj = respWrapper.reflekt().getField("a", superclass = true)!!
-                                bytes = protoObj.reflekt().firstMethod { name ="toByteArray"; superclass() }.invoke() as? ByteArray
+                                bytes = protoObj.reflekt().firstMethod { name = "toByteArray"; superclass() }.invoke() as? ByteArray
                             }
                         } catch (e: Throwable) {
                             WeLogger.w("NativeResponseHandler", "failed to extract response bytes", e)

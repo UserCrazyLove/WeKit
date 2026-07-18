@@ -223,16 +223,16 @@ object StickersManagerEnhancements : SwitchFeature() {
         baseDeleteText: String
     ) {
         val deleteTv = mpfRef.get() ?: return
-        val moveTv   = mpgRef.get() ?: return
-        val size     = selection.size
+        val moveTv = mpgRef.get() ?: return
+        val size = selection.size
         if (size > 0) {
-            deleteTv.text      = "$baseDeleteText ($size)"
+            deleteTv.text = "$baseDeleteText ($size)"
             deleteTv.isEnabled = true
-            moveTv.isEnabled   = true
+            moveTv.isEnabled = true
         } else {
-            deleteTv.text      = baseDeleteText
+            deleteTv.text = baseDeleteText
             deleteTv.isEnabled = false
-            moveTv.isEnabled   = false
+            moveTv.isEnabled = false
         }
     }
 
@@ -279,7 +279,7 @@ object StickersManagerEnhancements : SwitchFeature() {
         mpgRef: WeakReference<View>,
         baseDeleteText: String
     ) {
-        val adapter   = recyclerRef.get()?.reflekt()?.invokeMethod("getAdapter", superclass = true) ?: return
+        val adapter = recyclerRef.get()?.reflekt()?.invokeMethod("getAdapter", superclass = true) ?: return
         val selection = activitySelectionList(activity)
         val allEmojis = adapterEmojiItems(adapter)
 

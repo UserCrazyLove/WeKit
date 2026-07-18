@@ -24,7 +24,10 @@ object ErudaConsole : SwitchFeature(), IResolveDex {
         searchPackages("com.tencent.mm.plugin.appbrand.page")
         matcher {
             declaredClass {
-                usingEqStrings("MicroMsg.AppBrandWebView", "onReceivedHttpError, WebResourceRequest url = %s, ErrWebResourceResponse mimeType = %s, status = %d")
+                usingEqStrings(
+                    "MicroMsg.AppBrandWebView",
+                    "onReceivedHttpError, WebResourceRequest url = %s, ErrWebResourceResponse mimeType = %s, status = %d"
+                )
                 superClass {
                     className("com.tencent.xweb", StringMatchType.StartsWith)
                 }

@@ -59,7 +59,9 @@ fun ModelProvidersScreen(
         item {
             Button(
                 onClick = { showAdd.value = true },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = AGENT_CONTENT_BOTTOM_INSET),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = AGENT_CONTENT_BOTTOM_INSET),
             ) { Text("添加提供方") }
         }
     }

@@ -32,7 +32,7 @@ interface SessionDao {
 
     @Query(
         "UPDATE sessions SET promptTokens = :promptTokens, completionTokens = :completionTokens, " +
-            "totalTokens = :totalTokens WHERE id = :id"
+                "totalTokens = :totalTokens WHERE id = :id"
     )
     suspend fun updateUsage(id: String, promptTokens: Int?, completionTokens: Int?, totalTokens: Int?)
 

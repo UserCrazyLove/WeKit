@@ -23,6 +23,7 @@ object McpJsonBridge {
             e.doubleOrNull != null -> e.doubleOrNull
             else -> e.content
         }
+
         is JsonArray -> e.map { toPlain(it) }
         is JsonObject -> e.mapValues { toPlain(it.value) }
     }

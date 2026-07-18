@@ -4,9 +4,9 @@ import android.content.res.ColorStateList
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.RippleDrawable
 import android.view.View
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
-import dev.ujhhgtg.reflekt.reflekt
 
 @Feature(name = "美化组件按下效果", categories = ["界面美化"], description = "将 View 的背景替换为 RippleDrawable (没写完)")
 object BeautifyViewPressEffect : SwitchFeature() {

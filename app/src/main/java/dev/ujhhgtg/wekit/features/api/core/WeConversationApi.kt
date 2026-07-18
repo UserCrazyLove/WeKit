@@ -6,11 +6,7 @@ import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.api.core.WeConversationApi.hideConversation
-import dev.ujhhgtg.wekit.features.api.core.WeConversationApi.methodBuildModContactOplog
-import dev.ujhhgtg.wekit.features.api.core.WeConversationApi.methodSetDnd
-import dev.ujhhgtg.wekit.features.api.core.WeConversationApi.methodSetNoDnd
 import dev.ujhhgtg.wekit.features.api.core.WeConversationApi.reloadConversations
-import dev.ujhhgtg.wekit.features.api.net.WePacketHelper
 import dev.ujhhgtg.wekit.features.core.ApiFeature
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.utils.HostInfo
@@ -507,53 +503,14 @@ object WeConversationApi : ApiFeature(), IResolveDex {
 
     /**
      * Toggle "消息免打扰" for [convId] and sync it to the server.
-     *
-     * WeChat stores the mute state as a bit on the contact's `type` and normally syncs it via a
-     * modContact `oplog` (cmd 2). The native DND setters ([methodSetDnd]/[methodSetNoDnd]) update
-     * the local DB, but they enqueue that oplog onto WeChat's batched coroutine oplog queue, which
-     * doesn't reliably flush from an injected context — so the change stayed local-only. Here we
-     * still call the native setter (it applies the bit to the DB and refreshes the conversation
-     * list, handling the OpenIM/biz edge cases), then re-read the mutated contact and send the
-     * modContact oplog **directly** through [WePacketHelper] — the same reliable path
-     * [WeContactApi.deleteContact] uses. The modContact proto is built by WeChat's own
-     * [methodBuildModContactOplog] so its ~80 fields (BitMask/BitVal + remark) stay byte-perfect.
      */
     fun setDnd(convId: String, dnd: Boolean) {
-        // 1. Apply the mute bit locally via WeChat's own logic (also refreshes the UI + queues the
-        //    native oplog; the redundant native queue is harmless since modContact is idempotent).
         val stub = methodSetDnd.method.parameterTypes[0].createInstance(convId)
         if (dnd) {
             methodSetDnd.method.invoke(null, stub, true)
         } else {
             methodSetNoDnd.method.invoke(null, stub, true)
         }
-
-        // 2. Send the modContact oplog directly so the change actually reaches the server.
-//        try {
-//            val contact = fetchContact(convId)
-//
-//            val protoBytes = methodBuildModContactOplog.method.invoke(null, contact)
-//                ?.reflekt()?.invokeMethod("toByteArray", superclass = true) as? ByteArray
-//            if (protoBytes == null) {
-//                WeLogger.w(TAG, "modContact sync skipped: proto build failed for $convId")
-//                return
-//            }
-//
-//            WePacketHelper.sendCgiRaw(
-//                "/cgi-bin/micromsg-bin/oplog", 681, 0, 0,
-//                OpLog.encodeRequest(listOf(OpLog.operationRaw(OpLog.CMD_MOD_CONTACT, protoBytes)))
-//            ) {
-//                onSuccess { bytes ->
-//                    val ret = bytes?.let { OpLogRespProto.decode(it).ret }
-//                    WeLogger.i(TAG, "modContact sync for $convId (dnd=$dnd): ret=$ret")
-//                }
-//                onFailure { type, code, msg ->
-//                    WeLogger.w(TAG, "modContact sync for $convId failed: $type, $code, $msg")
-//                }
-//            }
-//        } catch (ex: Exception) {
-//            WeLogger.e(TAG, "exception while syncing modContact for $convId", ex)
-//        }
     }
 
     /**

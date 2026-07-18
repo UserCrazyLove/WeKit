@@ -11,12 +11,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.ujhhgtg.wekit.agent.data.WeAgentRepository
@@ -32,8 +32,6 @@ import dev.ujhhgtg.wekit.agent.trigger.TriggerType
 import dev.ujhhgtg.wekit.ui.content.MiuixSmallTitle
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.util.UUID
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -43,6 +41,8 @@ import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 import top.yukonga.miuix.kmp.window.WindowDialog
+import java.time.Instant
+import java.util.UUID
 
 /**
  * Trigger management (§ triggers). Lists global and per-session triggers, lets the user enable/
@@ -74,7 +74,8 @@ fun TriggersScreen(onBack: () -> Unit) {
         if (global.isNotEmpty()) {
             item { MiuixSmallTitle("全局触发器") }
             items(global.size, key = { global[it].id }) { i ->
-                TriggerCard(global[i], sessionTitle = null, scope = scope,
+                TriggerCard(
+                    global[i], sessionTitle = null, scope = scope,
                     onEdit = { editing = global[i]; showEditor = true })
             }
         }
@@ -83,7 +84,8 @@ fun TriggersScreen(onBack: () -> Unit) {
             item { MiuixSmallTitle("会话触发器") }
             items(perSession.size, key = { perSession[it].id }) { i ->
                 val t = perSession[i]
-                TriggerCard(t, sessionTitle = sessions[t.sessionId]?.title ?: "（会话已删除）", scope = scope,
+                TriggerCard(
+                    t, sessionTitle = sessions[t.sessionId]?.title ?: "（会话已删除）", scope = scope,
                     onEdit = { editing = t; showEditor = true })
             }
         }
@@ -91,7 +93,9 @@ fun TriggersScreen(onBack: () -> Unit) {
         item {
             Button(
                 onClick = { editing = null; showEditor = true },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = AGENT_CONTENT_BOTTOM_INSET),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = AGENT_CONTENT_BOTTOM_INSET),
             ) { Text("添加触发器") }
         }
     }
@@ -153,10 +157,12 @@ private fun configSummary(t: TriggerEntity): String = when (t.type) {
             val m = t.dailyMinuteOfDay ?: 0
             "每天 ${(m / 60).toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}"
         }
+
         ScheduleKind.CRON -> "cron: ${t.cronExpr}"
         ScheduleKind.ONCE -> "一次性"
         null -> "未配置"
     }
+
     TriggerType.MESSAGE, TriggerType.SQL -> {
         val debounce = t.bufferDebounceMillis / 1000
         "缓冲 ${debounce}s / 上限 ${t.bufferMaxEvents} 条"
@@ -234,7 +240,9 @@ private fun TriggerEditorDialog(
     var filterOwn by remember(existing) { mutableStateOf(existing?.filterOwnEvents ?: true) }
 
     WindowDialog(show = show, title = if (creating) "添加触发器" else "编辑触发器", onDismissRequest = onDismiss) {
-        Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
+        Column(Modifier
+            .heightIn(max = 460.dp)
+            .verticalScroll(rememberScrollState())) {
             TextField(value = name, onValueChange = { name = it }, label = "名称", useLabelAsPlaceholder = true, singleLine = true)
             Spacer(Modifier.height(8.dp))
 
@@ -280,21 +288,48 @@ private fun TriggerEditorDialog(
                             Spacer(Modifier.width(8.dp))
                             Column(Modifier.weight(1f)) { NumberField("分（0-59）", dailyMinute) { dailyMinute = it } }
                         }
+
                         ScheduleKind.CRON -> {
-                            TextField(value = cronExpr, onValueChange = { cronExpr = it }, label = "Cron（分 时 日 月 周）", useLabelAsPlaceholder = true, singleLine = true)
+                            TextField(
+                                value = cronExpr,
+                                onValueChange = { cronExpr = it },
+                                label = "Cron（分 时 日 月 周）",
+                                useLabelAsPlaceholder = true,
+                                singleLine = true
+                            )
                         }
+
                         ScheduleKind.ONCE -> {
                             Text("一次性触发请由 AI 通过工具设定具体时间；此处保存后需在 AI 中配置触发时间。", Modifier.padding(vertical = 8.dp))
                         }
                     }
                 }
+
                 TriggerType.MESSAGE -> {
                     Spacer(Modifier.height(8.dp))
-                    TextField(value = contentRegex, onValueChange = { contentRegex = it }, label = "内容匹配（正则，可空）", useLabelAsPlaceholder = true, singleLine = true)
+                    TextField(
+                        value = contentRegex,
+                        onValueChange = { contentRegex = it },
+                        label = "内容匹配（正则，可空）",
+                        useLabelAsPlaceholder = true,
+                        singleLine = true
+                    )
                     Spacer(Modifier.height(8.dp))
-                    TextField(value = talkerRegex, onValueChange = { talkerRegex = it }, label = "会话/发送者匹配（正则，可空）", useLabelAsPlaceholder = true, singleLine = true)
+                    TextField(
+                        value = talkerRegex,
+                        onValueChange = { talkerRegex = it },
+                        label = "会话/发送者匹配（正则，可空）",
+                        useLabelAsPlaceholder = true,
+                        singleLine = true
+                    )
                     Spacer(Modifier.height(8.dp))
-                    TextField(value = msgTypes, onValueChange = { msgTypes = it }, label = "消息类型码（逗号分隔，可空）", useLabelAsPlaceholder = true, singleLine = true)
+                    TextField(
+                        value = msgTypes,
+                        onValueChange = { msgTypes = it },
+                        label = "消息类型码（逗号分隔，可空）",
+                        useLabelAsPlaceholder = true,
+                        singleLine = true
+                    )
                     WindowDropdownPreference(
                         title = "方向",
                         items = listOf("收到", "发出", "两者"),
@@ -307,29 +342,58 @@ private fun TriggerEditorDialog(
                         checked = filterOwn,
                         onCheckedChange = { filterOwn = it },
                     )
-                    BufferFields(debounceSec, maxEvents, maxWaitSec, cooldownSec,
+                    BufferFields(
+                        debounceSec, maxEvents, maxWaitSec, cooldownSec,
                         { debounceSec = it }, { maxEvents = it }, { maxWaitSec = it }, { cooldownSec = it })
                 }
+
                 TriggerType.SQL -> {
                     Spacer(Modifier.height(8.dp))
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
+                    Row(Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp)) {
                         OpToggle("INSERT", opInsert) { opInsert = it }
                         OpToggle("UPDATE", opUpdate) { opUpdate = it }
                         OpToggle("QUERY", opQuery) { opQuery = it }
                     }
                     Spacer(Modifier.height(8.dp))
-                    TextField(value = tableRegex, onValueChange = { tableRegex = it }, label = "表名匹配（正则，INSERT/UPDATE）", useLabelAsPlaceholder = true, singleLine = true)
+                    TextField(
+                        value = tableRegex,
+                        onValueChange = { tableRegex = it },
+                        label = "表名匹配（正则，INSERT/UPDATE）",
+                        useLabelAsPlaceholder = true,
+                        singleLine = true
+                    )
                     Spacer(Modifier.height(8.dp))
-                    TextField(value = sqlRegex, onValueChange = { sqlRegex = it }, label = "SQL 匹配（正则，QUERY）", useLabelAsPlaceholder = true, singleLine = true)
+                    TextField(
+                        value = sqlRegex,
+                        onValueChange = { sqlRegex = it },
+                        label = "SQL 匹配（正则，QUERY）",
+                        useLabelAsPlaceholder = true,
+                        singleLine = true
+                    )
                     Spacer(Modifier.height(8.dp))
-                    TextField(value = valuesRegex, onValueChange = { valuesRegex = it }, label = "写入值匹配（正则，INSERT/UPDATE）", useLabelAsPlaceholder = true, singleLine = true)
-                    BufferFields(debounceSec, maxEvents, maxWaitSec, cooldownSec,
+                    TextField(
+                        value = valuesRegex,
+                        onValueChange = { valuesRegex = it },
+                        label = "写入值匹配（正则，INSERT/UPDATE）",
+                        useLabelAsPlaceholder = true,
+                        singleLine = true
+                    )
+                    BufferFields(
+                        debounceSec, maxEvents, maxWaitSec, cooldownSec,
                         { debounceSec = it }, { maxEvents = it }, { maxWaitSec = it }, { cooldownSec = it })
                 }
             }
 
             Spacer(Modifier.height(8.dp))
-            TextField(value = promptTemplate, onValueChange = { promptTemplate = it }, label = "提示词（触发时追加在事件时间线之后）", useLabelAsPlaceholder = true, maxLines = 6)
+            TextField(
+                value = promptTemplate,
+                onValueChange = { promptTemplate = it },
+                label = "提示词（触发时追加在事件时间线之后）",
+                useLabelAsPlaceholder = true,
+                maxLines = 6
+            )
             Spacer(Modifier.height(16.dp))
 
             Row(Modifier.fillMaxWidth()) {
@@ -341,7 +405,7 @@ private fun TriggerEditorDialog(
                     modifier = Modifier.weight(1f),
                     // Disable save when a session-bound trigger has no session to bind to.
                     enabled = name.isNotBlank() && promptTemplate.isNotBlank() &&
-                        (selectedScope == TriggerScope.GLOBAL || sessionList.isNotEmpty()),
+                            (selectedScope == TriggerScope.GLOBAL || sessionList.isNotEmpty()),
                     onClick = {
                         val built = buildTrigger(
                             existing = existing,
@@ -466,6 +530,7 @@ private fun buildTrigger(
             atEpochMillis = existing?.atEpochMillis?.takeIf { kind == ScheduleKind.ONCE },
             conditionsJson = null,
         )
+
         TriggerType.MESSAGE, TriggerType.SQL -> base.copy(
             scheduleKind = null,
             conditionsJson = TriggerConditionsJson.encode(conditions),

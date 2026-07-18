@@ -404,9 +404,11 @@ object WeMessageApi : ApiFeature(), IResolveDex {
                     m.returnType.name.contains("flow", ignoreCase = true)
         }
     }
-    private val taskConstructor: Constructor<*> by lazy { classImageTask.clazz.reflekt()
-        .firstConstructor { parameterCount = 5 }
-        .self }
+    private val taskConstructor: Constructor<*> by lazy {
+        classImageTask.clazz.reflekt()
+            .firstConstructor { parameterCount = 5 }
+            .self
+    }
     private val crossParamsClass: Class<*> by lazy { taskConstructor.parameterTypes[4] }
 
     // 语音 & VFS
@@ -600,7 +602,7 @@ object WeMessageApi : ApiFeature(), IResolveDex {
      */
     fun getMsgInfoInstanceByMsgSvrId(msgSvrId: Long, talker: String? = null): Any {
         val resolvedTalker = talker ?: getTalkerByMsgSvrId(msgSvrId)
-            ?: error("failed to resolve talker for msgSvrId=$msgSvrId")
+        ?: error("failed to resolve talker for msgSvrId=$msgSvrId")
         return methodGetMsgInfoByTalkerAndSvrId.method.invoke(
             WeServiceApi.msgInfoStorage, resolvedTalker, msgSvrId
         )!!
@@ -656,7 +658,6 @@ object WeMessageApi : ApiFeature(), IResolveDex {
     fun sendEmoji(toUser: String, path: String): Boolean {
         return runCatching {
             val md5 = WeServiceApi.processEmojiPath(path)
-            WeLogger.i(TAG, md5)
             val emojiThumb = WeServiceApi.saveEmojiThumb(md5)
 
             val sendMethod = WeServiceApi.emojiMgrImpl.reflekt().firstMethod {

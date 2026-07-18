@@ -26,6 +26,7 @@ import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.Intent
+import dev.ujhhgtg.wekit.utils.reflection.ClassLoaders
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -286,14 +287,14 @@ object ActivityProxy {
                     "recovered intent in newActivity fallback: $resolvedClass"
                 )
             }
-            return try {
-                base.newActivity(cl, resolvedClass, resolvedIntent)
-            } catch (e: ClassNotFoundException) {
-                if (ActProxyMgr.isModuleProxyActivity(resolvedClass)) {
-                    javaClass.classLoader!!.loadClass(resolvedClass)
-                        .getDeclaredConstructor().newInstance() as Activity
-                } else throw e
+            // fast path
+            // also fixes compatibility with FunBox Zygisk
+            // I haven't the foggiest idea of why upstream chose to use try-catch for this
+            if (ActProxyMgr.isModuleProxyActivity(resolvedClass)) {
+                return ClassLoaders.MODULE.loadClass(resolvedClass)
+                    .getDeclaredConstructor().newInstance() as Activity
             }
+            return base.newActivity(cl, resolvedClass, resolvedIntent)
         }
 
         override fun newActivity(

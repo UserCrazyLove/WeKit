@@ -3,11 +3,11 @@ package dev.ujhhgtg.wekit.features.items.system
 import android.app.Activity
 import android.content.Intent
 import com.tencent.mm.plugin.webview.ui.tools.WebViewUI
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
-import dev.ujhhgtg.reflekt.reflekt
 
 @Feature(name = "强制启用 WebView 菜单", categories = ["系统与隐私"], description = "强制显示 WebView 页面右上角菜单按钮")
 object EnableWebViewFeatures : SwitchFeature(), IResolveDex {

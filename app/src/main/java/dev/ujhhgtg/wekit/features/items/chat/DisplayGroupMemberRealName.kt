@@ -142,10 +142,22 @@ object DisplayGroupMemberRealName : ApiFeature(), WeChatMessageViewApi.ICreateVi
         val plainLen = if (hasExistingAnnotation) annotStart else base.length
 
         val annotation = when {
-            firstChar != null && lastChar != null -> " ($firstChar·$lastChar)"
+            firstChar != null && lastChar != null -> {
+                // lastChar = "<middle asterisks><last char>", e.g. "**C" for a 4-char name.
+                // Reconstruct the masked display name, collapsing any number of middle asterisks
+                // to exactly one so 3-char and 4-char names both render as e.g. "A*C".
+                // 2-char names have no middle asterisks and render as e.g. "AB".
+                val last = lastChar.last()
+                val middle = lastChar.dropLast(1)
+                val masked = if (middle.isEmpty()) "$firstChar$last" else "$firstChar*$last"
+                " ($masked)"
+            }
             // Show first-only placeholder only when there is no annotation yet;
             // if one exists it already contains the last char, which is more informative.
-            firstChar != null && !hasExistingAnnotation -> " ($firstChar·?)"
+            // "?" signals unknown length — no asterisks, since we can't infer how many middle
+            // chars exist yet.
+            firstChar != null && !hasExistingAnnotation -> " ($firstChar?)"
+            // lastChar already encodes the masked middle (e.g. "**C"), so show it verbatim.
             firstChar == null && lastChar != null -> " ($lastChar)"
             else -> return
         }

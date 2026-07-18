@@ -1,7 +1,6 @@
 package dev.ujhhgtg.wekit.features.api.agent
 
 import dev.ujhhgtg.wekit.agent.jvm.JvmObjectRegistry
-import dev.ujhhgtg.wekit.agent.jvm.JvmValueBridge
 import dev.ujhhgtg.wekit.features.api.ui.WeWebViewApi
 import dev.ujhhgtg.wekit.features.core.AgentTool
 import dev.ujhhgtg.wekit.features.core.AgentTool.Companion.BUILTIN_WEBVIEW
@@ -30,9 +29,9 @@ object WeWebViewToolBindings {
     @AgentTool(
         name = "webview-list",
         description = "List all live WebViews currently tracked in WeChat's main process. Returns " +
-            "each as a handle (#N) with its runtime class, current URL, and title, so you can then " +
-            "run JS or navigate on a chosen one. Note: only main-process WebViews are visible — H5 " +
-            "pages and mini-programs run in separate processes and are NOT listed.",
+                "each as a handle (#N) with its runtime class, current URL, and title, so you can then " +
+                "run JS or navigate on a chosen one. Note: only main-process WebViews are visible — H5 " +
+                "pages and mini-programs run in separate processes and are NOT listed.",
         sideEffect = false,
         group = BUILTIN_WEBVIEW,
     )
@@ -77,10 +76,10 @@ object WeWebViewToolBindings {
     @AgentTool(
         name = "webview-eval-js",
         description = "Evaluate JavaScript in a WebView handle (from webview-list) and return the " +
-            "JSON-encoded result (as Android's evaluateJavascript delivers it — e.g. a string is " +
-            "returned quoted). The last expression's value is the result; use JSON.stringify for " +
-            "complex objects. Runs in the page's context with its cookies/session — powerful, so it " +
-            "requires approval.",
+                "JSON-encoded result (as Android's evaluateJavascript delivers it — e.g. a string is " +
+                "returned quoted). The last expression's value is the result; use JSON.stringify for " +
+                "complex objects. Runs in the page's context with its cookies/session — powerful, so it " +
+                "requires approval.",
         sideEffect = true,
         group = BUILTIN_WEBVIEW,
     )
@@ -92,7 +91,7 @@ object WeWebViewToolBindings {
     @AgentTool(
         name = "webview-load-url",
         description = "Navigate a WebView handle to a URL. Accepts http(s):// URLs and javascript: " +
-            "URLs.",
+                "URLs.",
         sideEffect = true,
         group = BUILTIN_WEBVIEW,
     )
@@ -133,7 +132,7 @@ object WeWebViewToolBindings {
     @AgentTool(
         name = "webview-go-back",
         description = "Navigate a WebView handle back in its history if possible. Returns whether it " +
-            "could go back.",
+                "could go back.",
         sideEffect = true,
         group = BUILTIN_WEBVIEW,
     )
@@ -144,7 +143,7 @@ object WeWebViewToolBindings {
     @AgentTool(
         name = "webview-go-forward",
         description = "Navigate a WebView handle forward in its history if possible. Returns whether " +
-            "it could go forward.",
+                "it could go forward.",
         sideEffect = true,
         group = BUILTIN_WEBVIEW,
     )

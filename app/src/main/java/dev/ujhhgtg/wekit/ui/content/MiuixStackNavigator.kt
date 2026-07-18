@@ -47,12 +47,12 @@ import kotlin.math.sqrt
  */
 internal val NavAnimationEasing: Easing = run {
     val response = 0.8
-    val damping  = 0.95
+    val damping = 0.95
     val omega = 2.0 * PI / response
     val k = omega * omega
     val c = damping * 4.0 * PI / response
     val w = sqrt(4.0 * k - c * c) / 2.0
-    val r  = -c / 2.0
+    val r = -c / 2.0
     val c2 = r / w
     Easing { fraction ->
         val t = fraction.toDouble()
@@ -64,7 +64,7 @@ internal val NavAnimationEasing: Easing = run {
 /** Device hardware corner radius (API 31+), or 32 dp as a sane squircle fallback. */
 @Composable
 internal fun deviceCornerRadiusDp(): Dp {
-    val view    = LocalView.current
+    val view = LocalView.current
     val density = LocalDensity.current
     return remember(view) {
         val px = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
@@ -124,7 +124,9 @@ fun <T : Any> MiuixStackNavigator(
 
     fun pop() {
         if (animating) return
-        if (stack.size <= 1) { onExitRoot(); return }
+        if (stack.size <= 1) {
+            onExitRoot(); return
+        }
         animating = true
         scope.launch {
             p.animateTo(1f, spec)         // slide out

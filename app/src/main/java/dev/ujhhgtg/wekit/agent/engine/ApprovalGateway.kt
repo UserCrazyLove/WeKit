@@ -68,6 +68,7 @@ class ApprovalGateway(
                     ApprovalDecision.Denied(res.reason, bySmartReview = false)
             }
         }
+
         ToolMode.SMART_APPROVAL -> smartReview(toolName, argumentsJson, modelExplanation)
     }
 
@@ -78,8 +79,10 @@ class ApprovalGateway(
     fun deniedResultText(decision: ApprovalDecision.Denied): String = when {
         decision.bySmartReview ->
             "工具调用被拒绝：${decision.reason ?: "未给出理由"}"
+
         decision.reason != null ->
             "工具调用被用户拒绝。用户给出的理由：${decision.reason}"
+
         else ->
             "工具调用被用户拒绝，用户未说明理由。"
     }
@@ -91,7 +94,10 @@ class ApprovalGateway(
     ): ApprovalDecision {
         val model = smallModel ?: run {
             WeLogger.w(TAG, "smart approval configured but no small model; denying")
-            return ApprovalDecision.Denied("用户为该工具启用了「智能审批」但未配置审批小模型。请让用户在 WeAgent 设置中配置审批小模型或切换审批模式。", bySmartReview = true)
+            return ApprovalDecision.Denied(
+                "用户为该工具启用了「智能审批」但未配置审批小模型。请让用户在 WeAgent 设置中配置审批小模型或切换审批模式。",
+                bySmartReview = true
+            )
         }
 
         val prompt = buildString {

@@ -59,7 +59,10 @@ object WeWebViewApi : ApiFeature(), IResolveDex {
         searchPackages("com.tencent.mm.plugin.appbrand.page")
         matcher {
             declaredClass {
-                usingEqStrings("MicroMsg.AppBrandWebView", "onReceivedHttpError, WebResourceRequest url = %s, ErrWebResourceResponse mimeType = %s, status = %d")
+                usingEqStrings(
+                    "MicroMsg.AppBrandWebView",
+                    "onReceivedHttpError, WebResourceRequest url = %s, ErrWebResourceResponse mimeType = %s, status = %d"
+                )
                 superClass {
                     className("com.tencent.xweb", StringMatchType.StartsWith)
                 }
@@ -104,7 +107,13 @@ object WeWebViewApi : ApiFeature(), IResolveDex {
         var result: T? = null
         var error: Throwable? = null
         mainHandler.post {
-            try { result = block() } catch (t: Throwable) { error = t } finally { latch.countDown() }
+            try {
+                result = block()
+            } catch (t: Throwable) {
+                error = t
+            } finally {
+                latch.countDown()
+            }
         }
         if (!latch.await(timeoutMs, TimeUnit.MILLISECONDS))
             throw RuntimeException("WebView main-thread call timed out after ${timeoutMs}ms")

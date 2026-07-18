@@ -1,5 +1,6 @@
 package dev.ujhhgtg.wekit.agent.tool
 
+import dev.ujhhgtg.wekit.agent.tool.ToolRegistry.Companion.DISCOVER_TOOLS_NAME
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive

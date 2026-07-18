@@ -6,7 +6,6 @@ import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,15 +34,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
-import coil3.compose.AsyncImage
 import androidx.lifecycle.lifecycleScope
+import coil3.compose.AsyncImage
 import com.composables.icons.materialsymbols.MaterialSymbols
 import com.composables.icons.materialsymbols.outlined.Account_circle
 import com.composables.icons.materialsymbols.outlined.Arrow_back
@@ -312,6 +311,7 @@ private fun ProfileCard() {
 
     // WeChat identity — loaded once from the local DB; doesn't change mid-session.
     data class WechatIdentity(val nickname: String, val avatarUrl: String)
+
     val identity by produceState(WechatIdentity("", "")) {
         withContext(Dispatchers.IO) {
             val db = dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi
@@ -336,7 +336,9 @@ private fun ProfileCard() {
                     model = identity.avatarUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(56.dp).clip(CircleShape),
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape),
                 )
             } else {
                 AvatarPlaceholder()

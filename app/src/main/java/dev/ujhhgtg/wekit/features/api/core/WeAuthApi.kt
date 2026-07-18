@@ -43,8 +43,8 @@ object WeAuthApi : ApiFeature(), IResolveDex {
 
             val getDispatcherMethod = queue.javaClass.methods.first { method ->
                 method.parameterCount == 0 &&
-                method.returnType.isInterface &&
-                method.returnType.name.startsWith("com.tencent.mm.")
+                        method.returnType.isInterface &&
+                        method.returnType.name.startsWith("com.tencent.mm.")
             }
             val dispatcher = getDispatcherMethod.invoke(queue)
 

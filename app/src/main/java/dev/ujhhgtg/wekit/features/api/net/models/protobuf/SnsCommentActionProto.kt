@@ -25,32 +25,32 @@ import kotlinx.serialization.protobuf.ProtoNumber
 @Serializable
 data class SnsCommentActionProto(
     /** Display text for text comments; null/absent for sticker comments. */
-    @ProtoNumber(1)  val content: String?            = null,
-    @ProtoNumber(2)  val field2: String?             = null,
-    @ProtoNumber(3)  val field3: String?             = null,
-    @ProtoNumber(4)  val field4: String?             = null,
-    @ProtoNumber(5)  val field5: Int                 = 0,
-    @ProtoNumber(6)  val field6: Int                 = 0,
-    @ProtoNumber(7)  val field7: Int                 = 0,
-    @ProtoNumber(8)  val field8: String?             = null,
-    @ProtoNumber(9)  val field9: Int                 = 0,
-    @ProtoNumber(10) val field10: Int                = 0,
-    @ProtoNumber(11) val field11: Int                = 0,
-    @ProtoNumber(12) val field12: Long               = 0,
-    @ProtoNumber(13) val field13: Long               = 0,
+    @ProtoNumber(1) val content: String? = null,
+    @ProtoNumber(2) val field2: String? = null,
+    @ProtoNumber(3) val field3: String? = null,
+    @ProtoNumber(4) val field4: String? = null,
+    @ProtoNumber(5) val field5: Int = 0,
+    @ProtoNumber(6) val field6: Int = 0,
+    @ProtoNumber(7) val field7: Int = 0,
+    @ProtoNumber(8) val field8: String? = null,
+    @ProtoNumber(9) val field9: Int = 0,
+    @ProtoNumber(10) val field10: Int = 0,
+    @ProtoNumber(11) val field11: Int = 0,
+    @ProtoNumber(12) val field12: Long = 0,
+    @ProtoNumber(13) val field13: Long = 0,
     /** cu5 sub-message — sticker / emoji metadata. Preserved as opaque bytes. */
-    @ProtoNumber(14) val field14: ByteArray?         = null,
-    @ProtoNumber(15) val field15: Int                = 0,
+    @ProtoNumber(14) val field14: ByteArray? = null,
+    @ProtoNumber(15) val field15: Int = 0,
     /** mo5 sub-message. Preserved as opaque bytes. */
-    @ProtoNumber(16) val field16: ByteArray?         = null,
+    @ProtoNumber(16) val field16: ByteArray? = null,
     /** Repeated l86 sub-messages. Preserved as opaque bytes. */
-    @ProtoNumber(17) val field17: List<ByteArray>    = emptyList(),
-    @ProtoNumber(18) val field18: Int                = 0,
-    @ProtoNumber(22) val field22: Int                = 0,
-    @ProtoNumber(23) val field23: Int                = 0,
-    @ProtoNumber(24) val field24: Int                = 0,
+    @ProtoNumber(17) val field17: List<ByteArray> = emptyList(),
+    @ProtoNumber(18) val field18: Int = 0,
+    @ProtoNumber(22) val field22: Int = 0,
+    @ProtoNumber(23) val field23: Int = 0,
+    @ProtoNumber(24) val field24: Int = 0,
     /** Repeated d86 sub-messages. Preserved as opaque bytes. */
-    @ProtoNumber(25) val field25: List<ByteArray>    = emptyList(),
+    @ProtoNumber(25) val field25: List<ByteArray> = emptyList(),
 ) {
     companion object {
         fun decode(bytes: ByteArray): SnsCommentActionProto = WeProto.decode(bytes)

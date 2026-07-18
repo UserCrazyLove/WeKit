@@ -29,7 +29,7 @@ object RemoveMenuLimits : SwitchFeature(), IResolveDex {
         }
     }
 
-    private val methodGetMenuItemVisibility1 by dexMethod{
+    private val methodGetMenuItemVisibility1 by dexMethod {
         searchPackages("com.tencent.mm.plugin.appbrand.menu")
 
         matcher {

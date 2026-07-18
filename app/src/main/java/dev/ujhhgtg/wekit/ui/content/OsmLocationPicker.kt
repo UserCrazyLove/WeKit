@@ -90,16 +90,16 @@ fun tiandituTileSource(apiKey: String): ITileSource = object : OnlineTileSourceB
     "Tianditu", 0, 19, 256, "",
     arrayOf(
         "https://t0.tianditu.gov.cn/vec_w/wmts?" +
-            "SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0" +
-            "&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&tk=$apiKey"
+                "SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0" +
+                "&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&tk=$apiKey"
     ),
     "© 天地图"
 ) {
     override fun getTileURLString(pMapTileIndex: Long): String =
         baseUrl +
-            "&TILECOL=" + MapTileIndex.getX(pMapTileIndex) +
-            "&TILEROW=" + MapTileIndex.getY(pMapTileIndex) +
-            "&TILEMATRIX=" + MapTileIndex.getZoom(pMapTileIndex)
+                "&TILECOL=" + MapTileIndex.getX(pMapTileIndex) +
+                "&TILEROW=" + MapTileIndex.getY(pMapTileIndex) +
+                "&TILEMATRIX=" + MapTileIndex.getZoom(pMapTileIndex)
 }
 
 /**

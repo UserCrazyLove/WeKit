@@ -100,10 +100,12 @@ class WeChatSettingsManager(
                         spec.onClick?.invoke(activity) ?: ProxyBuilder.callSuper(proxy, method, *args)
                     }
                 }
+
                 mGetKey -> spec.key
                 mGetSettingLocation -> {
                     classSettingLocation.createInstance(spec.pageClass, spec.parentClass)
                 }
+
                 mGetNameResId -> titleResId
                 mGetGroupNameResId -> if (spec.groupTitle != null) groupResId else null
 
@@ -111,10 +113,12 @@ class WeChatSettingsManager(
                 mGetSwitchState if spec.isSwitch -> {
                     spec.switchState?.invoke() ?: false
                 }
+
                 mGetSwitchProperty if spec.isSwitch -> {
                     val switchHandlerClass = method.returnType
                     createSwitchHandlerProxy(switchHandlerClass, spec)
                 }
+
                 else -> ProxyBuilder.callSuper(proxy, method, *args)
             }
         }

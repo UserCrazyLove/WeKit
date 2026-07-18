@@ -6,8 +6,9 @@ import android.content.ContentValues
 import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.features.api.core.WeApi
 import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
+import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.serialization.NativeXmlParser
-import dev.ujhhgtg.wekit.utils.serialization.XmlArray
+import dev.ujhhgtg.wekit.utils.serialization.XmlObject
 import dev.ujhhgtg.wekit.utils.serialization.asInt
 import dev.ujhhgtg.wekit.utils.serialization.asLong
 import dev.ujhhgtg.wekit.utils.serialization.asString
@@ -15,9 +16,6 @@ import dev.ujhhgtg.wekit.utils.serialization.get
 import dev.ujhhgtg.wekit.utils.serialization.getByPath
 import dev.ujhhgtg.wekit.utils.strings.isGroupChatWxId
 import dev.ujhhgtg.wekit.utils.strings.stripWxId
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonArray
 import java.nio.ByteBuffer
 
 class MessageInfo(val instance: Any) {
@@ -233,9 +231,8 @@ class MessageInfo(val instance: Any) {
         val svrId by lazy { recordObj["svrId"]!!.asLong }
         val talker by lazy { xml.getByPath("msg.appmsg.patMsg.chatUser")!!.asString }
         val template by lazy { recordObj["template"]!!.asString }
-        val recordObj: JsonElement by lazy {
-            val byPath = xml.getByPath("msg.appmsg.patMsg.records.record")!!
-            error("")
+        val recordObj by lazy {
+            xml.getByPath("msg.appmsg.patMsg.records.record")!! as XmlObject
         }
     }
 
@@ -258,6 +255,7 @@ class MessageInfo(val instance: Any) {
 
         val title by lazy { xml.getByPath("msg.appmsg.title")!!.asString }
         val des by lazy { xml.getByPath("msg.appmsg.des")!!.asString }
+
         // 'transcationid' is WeChat's typo
         val transactionId by lazy { xml.getByPath("msg.appmsg.wcpayinfo.transcationid")!!.asString }
         val transferId by lazy { xml.getByPath("msg.appmsg.wcpayinfo.transferid")!!.asString }

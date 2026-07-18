@@ -1,5 +1,6 @@
 package dev.ujhhgtg.wekit.agent.workspace
 
+import dev.ujhhgtg.wekit.agent.workspace.WorkspaceStore.cacheDir
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
 import java.io.File
@@ -65,7 +66,9 @@ object WorkspaceStore {
         val src = File(workspacesRoot, oldName.trim())
         val dst = File(workspacesRoot, n)
         if (dst.exists()) return false
-        if (!src.exists()) { dst.mkdirs(); return true }
+        if (!src.exists()) {
+            dst.mkdirs(); return true
+        }
         return runCatching { src.renameTo(dst) }.getOrDefault(false)
     }
 

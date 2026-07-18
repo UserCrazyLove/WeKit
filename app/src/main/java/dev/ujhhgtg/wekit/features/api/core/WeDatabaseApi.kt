@@ -27,9 +27,6 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
 import java.lang.reflect.Modifier
 
-/**
- * 微信数据库 API
- */
 @OptIn(ExperimentalSerializationApi::class)
 @SuppressLint("DiscouragedApi")
 @Feature(name = "数据库服务", categories = ["API"], description = "提供数据库直接查询能力")
@@ -343,7 +340,7 @@ object WeDatabaseApi : ApiFeature(), IResolveDex {
             .firstField {
                 type {
                     it == classSqliteDbWrapper.clazz ||
-                        it == classSqliteDbWrapper.clazz.interfaces[0]
+                            it == classSqliteDbWrapper.clazz.interfaces[0]
                 }
             }.get() ?: return
 

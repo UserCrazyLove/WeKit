@@ -29,15 +29,15 @@ object WeAgentFsToolBindings {
     @AgentTool(
         name = "read_file",
         description = "Read a UTF-8 text file at a /workspace/, /memory/, or /cache/ path. " +
-            "Reads the full file when `lines` is omitted. " +
-            "Pass `lines` to select specific lines using a compact range spec: " +
-            "comma-separated segments where each segment is a single line number (e.g. `5`) " +
-            "or a start:end range (e.g. `1:10`). " +
-            "Line numbers are 1-based and inclusive; omit either bound to mean first/last line; " +
-            "negative numbers count from EOF (-1 = last line). " +
-            "Examples: `1` (first line), `:-1` or `1:` or `1:-1` (whole file), " +
-            "`1:2,5:6` (lines 1–2 and 5–6), `1:10,20:30,100:` (lines 1–10, 20–30, 100 to EOF). " +
-            "The result is prefixed with a header showing the selected ranges and total line count.",
+                "Reads the full file when `lines` is omitted. " +
+                "Pass `lines` to select specific lines using a compact range spec: " +
+                "comma-separated segments where each segment is a single line number (e.g. `5`) " +
+                "or a start:end range (e.g. `1:10`). " +
+                "Line numbers are 1-based and inclusive; omit either bound to mean first/last line; " +
+                "negative numbers count from EOF (-1 = last line). " +
+                "Examples: `1` (first line), `:-1` or `1:` or `1:-1` (whole file), " +
+                "`1:2,5:6` (lines 1–2 and 5–6), `1:10,20:30,100:` (lines 1–10, 20–30, 100 to EOF). " +
+                "The result is prefixed with a header showing the selected ranges and total line count.",
         sideEffect = false,
         group = AgentTool.BUILTIN_FS,
     )
@@ -45,9 +45,9 @@ object WeAgentFsToolBindings {
         @AgentToolParam("Virtual path, e.g. /workspace/notes.md or /memory/MEMORY.md or /cache/result.txt") path: String,
         @AgentToolParam(
             "Optional line-range spec. Omit to read the whole file. " +
-            "Format: comma-separated segments, each either a 1-based line number (e.g. `42`) " +
-            "or a start:end range (e.g. `1:10`, `50:`, `:20`, `1:-1`). " +
-            "Negative indices count from EOF: -1 = last line."
+                    "Format: comma-separated segments, each either a 1-based line number (e.g. `42`) " +
+                    "or a start:end range (e.g. `1:10`, `50:`, `:20`, `1:-1`). " +
+                    "Negative indices count from EOF: -1 = last line."
         ) lines: String?,
     ): String = if (lines == null) {
         vfs().readFile(path)

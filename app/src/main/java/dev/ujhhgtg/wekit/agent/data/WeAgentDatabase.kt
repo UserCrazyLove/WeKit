@@ -102,7 +102,7 @@ abstract class WeAgentDatabase : RoomDatabase() {
                 // dangling providerId foreign keys, then drop the providers themselves.
                 db.execSQL(
                     "DELETE FROM models WHERE providerId IN " +
-                    "(SELECT id FROM model_providers WHERE type = 'WEKIT_ROUTER')"
+                            "(SELECT id FROM model_providers WHERE type = 'WEKIT_ROUTER')"
                 )
                 db.execSQL("DELETE FROM model_providers WHERE type = 'WEKIT_ROUTER'")
             }
@@ -116,7 +116,8 @@ abstract class WeAgentDatabase : RoomDatabase() {
             return Room.databaseBuilder(
                 HostInfo.application,
                 WeAgentDatabase::class.java,
-                dbFile.toString())
+                dbFile.toString()
+            )
                 // WAL uses mmap'd -shm/-wal sidecars that misbehave on FUSE-emulated
                 // external storage (moduleData lives on /sdcard); TRUNCATE is safe there.
                 .setJournalMode(JournalMode.TRUNCATE)

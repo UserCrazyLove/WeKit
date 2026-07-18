@@ -9,10 +9,14 @@ import dev.ujhhgtg.reflekt.reflekt
 class ContactBean(
     @JvmField val origin: Any
 ) {
-    @JvmField val username: String = origin.reflekt().getField("field_username", true) as? String ?: ""
-    @JvmField val alias: String = origin.reflekt().getField("field_alias", true) as? String ?: ""
-    @JvmField val conRemark: String = origin.reflekt().getField("field_conRemark", true) as? String ?: ""
-    @JvmField val nickname: String = origin.reflekt().getField("field_nickname", true) as? String ?: ""
+    @JvmField
+    val username: String = origin.reflekt().getField("field_username", true) as? String ?: ""
+    @JvmField
+    val alias: String = origin.reflekt().getField("field_alias", true) as? String ?: ""
+    @JvmField
+    val conRemark: String = origin.reflekt().getField("field_conRemark", true) as? String ?: ""
+    @JvmField
+    val nickname: String = origin.reflekt().getField("field_nickname", true) as? String ?: ""
 
     fun getAlias(): String = alias
     fun getConRemark(): String = conRemark

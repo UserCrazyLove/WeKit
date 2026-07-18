@@ -45,8 +45,11 @@ object AutoAddNearbyFriends : ClickableFeature(), IResolveDex {
                 type = List::class
             }.get()!! as LinkedList<*>
 
-            val friendProtos = friends.map { WeProto.decode<NearbyFriendProto>(
-                it.reflekt().invokeMethod("toByteArray", superclass = true) as ByteArray) }
+            val friendProtos = friends.map {
+                WeProto.decode<NearbyFriendProto>(
+                    it.reflekt().invokeMethod("toByteArray", superclass = true) as ByteArray
+                )
+            }
 
             result = null
         }

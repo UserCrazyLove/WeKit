@@ -75,6 +75,7 @@ object TriggerTimeline {
             ev.talker?.let { append(" 会话=$it") }
             ev.content?.let { append(" 内容=").append(truncate(it)) }
         }
+
         is TriggeredEvent.Sql -> buildString {
             append("[${ts(ev.at)}] SQL ").append(ev.op.name)
             ev.table?.let { append(" 表=$it") }

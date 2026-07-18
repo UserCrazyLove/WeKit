@@ -109,6 +109,7 @@ class AnthropicMessagesClient(
                         "text_delta" -> delta["text"]?.jsonPrimitive?.contentOrNullSafe()?.let {
                             textBuf.append(it); emit(LlmStreamEvent.TextDelta(it))
                         }
+
                         "thinking_delta" -> delta["thinking"]?.jsonPrimitive?.contentOrNullSafe()?.let {
                             reasoningBuf.append(it); emit(LlmStreamEvent.ReasoningDelta(it))
                         }
@@ -117,6 +118,7 @@ class AnthropicMessagesClient(
                         "signature_delta" -> delta["signature"]?.jsonPrimitive?.contentOrNullSafe()?.let {
                             signatureBuf.append(it)
                         }
+
                         "input_json_delta" -> delta["partial_json"]?.jsonPrimitive?.contentOrNullSafe()?.let {
                             blocks[index]?.args?.append(it)
                         }
@@ -253,6 +255,7 @@ class AnthropicMessagesClient(
                     if (blocks.isEmpty()) blocks.add(textBlock(""))
                     appendBlocks("user", blocks)
                 }
+
                 LlmRole.TOOL -> appendBlocks(
                     "user",
                     listOf(buildJsonObject {
@@ -261,6 +264,7 @@ class AnthropicMessagesClient(
                         put("content", msg.content ?: "")
                     }),
                 )
+
                 LlmRole.ASSISTANT -> {
                     val blocks = ArrayList<JsonObject>()
                     // Thinking block must precede text and tool_use blocks. Include it when we have
@@ -321,7 +325,7 @@ class AnthropicMessagesClient(
     }
 
     /** An inline base64 image block (Anthropic `source.type = base64`). */
-    private fun imageBlock(img: dev.ujhhgtg.wekit.agent.model.LlmImage): JsonObject = buildJsonObject {
+    private fun imageBlock(img: LlmImage): JsonObject = buildJsonObject {
         put("type", "image")
         putJsonObject("source") {
             put("type", "base64")

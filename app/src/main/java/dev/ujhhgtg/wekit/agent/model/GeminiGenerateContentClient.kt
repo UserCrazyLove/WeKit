@@ -109,7 +109,7 @@ class GeminiGenerateContentClient(
             for (part in parts) {
                 val p = part.jsonObject
                 val isThought = p["thought"]?.jsonPrimitive?.contentOrNullSafe() == "true"
-                    || p["thought"]?.let { it is kotlinx.serialization.json.JsonPrimitive && it.content == "true" } == true
+                        || p["thought"]?.let { it is kotlinx.serialization.json.JsonPrimitive && it.content == "true" } == true
 
                 val fcObj = p["functionCall"]?.jsonObject
                 if (fcObj != null) {

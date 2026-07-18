@@ -1,9 +1,9 @@
 package dev.ujhhgtg.wekit.features.items.miniapps
 
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.reflekt.utils.toClass
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
-import dev.ujhhgtg.reflekt.reflekt
 import org.json.JSONObject
 
 @Feature(name = "移除视频广告", categories = ["小程序"], description = "跳过小程序视频广告")

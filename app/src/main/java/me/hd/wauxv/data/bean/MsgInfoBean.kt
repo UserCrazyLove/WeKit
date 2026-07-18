@@ -11,17 +11,28 @@ class MsgInfoBean(
 ) {
     val msg = MessageInfo(origin)
 
-    @JvmField val msgId: Long = msg.id
-    @JvmField val msgSvrId: Long = msg.serverId
-    @JvmField val type: Int = msg.typeCode
-    @JvmField val isSendInt: Int = msg.isSend
-    @JvmField val createTime: Long = msg.createTime
-    @JvmField val talker: String = msg.talker
-    @JvmField val originContent: String = msg.content
-    @JvmField val imgPath: String? = msg.imagePath
-    @JvmField val lvBuffer: ByteArray = msg.lvBuffer
-    @JvmField val talkerId: Int = msg.talkerId
-    @JvmField val msgSeq: Long = msg.seq
+    @JvmField
+    val msgId: Long = msg.id
+    @JvmField
+    val msgSvrId: Long = msg.serverId
+    @JvmField
+    val type: Int = msg.typeCode
+    @JvmField
+    val isSendInt: Int = msg.isSend
+    @JvmField
+    val createTime: Long = msg.createTime
+    @JvmField
+    val talker: String = msg.talker
+    @JvmField
+    val originContent: String = msg.content
+    @JvmField
+    val imgPath: String? = msg.imagePath
+    @JvmField
+    val lvBuffer: ByteArray = msg.lvBuffer
+    @JvmField
+    val talkerId: Int = msg.talkerId
+    @JvmField
+    val msgSeq: Long = msg.seq
 
     // --- Field getters ---
 
@@ -44,44 +55,64 @@ class MsgInfoBean(
     /** 1 = text */
     @Suppress("DEPRECATION")
     fun isText(): Boolean = msg.type == MessageType.TEXT
+
     /** 3/13/39 = image */
     fun isImage(): Boolean = msg.typeCode in setOf(3, 13, 39)
+
     /** sticker (47/1048625) */
     fun isEmoji(): Boolean = msg.type?.isSticker == true
+
     /** 34 = voice */
     fun isVoice(): Boolean = msg.type == MessageType.VOICE
+
     /** 43 = video, 62 = micro video */
     fun isVideo(): Boolean = msg.type in setOf(MessageType.VIDEO, MessageType.MICRO_VIDEO)
+
     /** 42 = contact card */
     fun isShareCard(): Boolean = msg.type == MessageType.CARD
+
     /** 922746929 = pat */
     fun isPat(): Boolean = msg.type == MessageType.PAT
+
     /** 10000/9999 = system */
     fun isSystem(): Boolean = msg.type?.isSystem == true
+
     /** 822083633 = quote */
     fun isQuote(): Boolean = msg.type == MessageType.QUOTE
+
     /** 48/10002 = location */
     fun isLocation(): Boolean = msg.type?.isLocation == true
+
     /** 49 = app message */
     fun isApp(): Boolean = msg.type == MessageType.APP
+
     /** 16777265/974127153/1040187441 = link */
     fun isLink(): Boolean = msg.type?.isLink == true
+
     /** 419430449 = transfer */
     fun isTransfer(): Boolean = msg.type == MessageType.TRANSFER
+
     /** 436207665/469762097 = red packet */
     fun isRedBag(): Boolean = msg.type?.isRedPacket == true
+
     /** 486539313 = video account video */
     fun isVideoNumberVideo(): Boolean = msg.type == MessageType.ACCOUNT_VIDEO
+
     /** 805306417 = group note */
     fun isNote(): Boolean = msg.type == MessageType.GROUP_NOTE
+
     /** 1090519089 = file */
     fun isFile(): Boolean = msg.type == MessageType.FILE
+
     /** 268445456 = recall */
     fun isRecalled(): Boolean = msg.type == MessageType.RECALL
+
     /** 50/52/53 = voip */
     fun isVoip(): Boolean = msg.type?.isVoip == true
+
     /** Voip content check */
     fun isVoipVideo(): Boolean = isVoip() && msg.content == "voip_content_video"
+
     /** Voip content check */
     fun isVoipVoice(): Boolean = isVoip() && msg.content == "voip_content_voice"
 
@@ -121,6 +152,7 @@ class MsgInfoBean(
             isImage() -> {
                 originContent.ifEmpty { imgPath ?: "" }
             }
+
             isVoice() || isVideo() -> {
                 if (originContent.contains("<msg>") && originContent.contains("</msg>")) {
                     originContent.substringAfter("voicelength=\"").substringBefore("\"")
@@ -128,6 +160,7 @@ class MsgInfoBean(
                     originContent.substringAfter(":", originContent)
                 }
             }
+
             isPat() -> getPatMsg()?.getTemplate() ?: originContent
             else -> originContent
         }

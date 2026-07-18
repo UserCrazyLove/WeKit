@@ -6,10 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.reflekt.reflekt
 
 
 @Feature(name = "美化活动过渡动画", categories = ["界面美化"], description = "将部分活动过渡动画替换为默认过渡或元素级共享动画 (没做完)")

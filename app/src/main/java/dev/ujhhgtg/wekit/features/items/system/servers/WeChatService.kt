@@ -214,7 +214,8 @@ object WeChatService {
     }
 
     fun sendAppBrandMessage(toUser: String, title: String, pagePath: String, username: String): Result<Unit> {
-        val xml = """<msg><appmsg type="33"><title>$title</title><weappinfo><item><pagepath><![CDATA[$pagePath]]></pagepath><username>$username</username></item></weappinfo></appmsg></msg>"""
+        val xml =
+            """<msg><appmsg type="33"><title>$title</title><weappinfo><item><pagepath><![CDATA[$pagePath]]></pagepath><username>$username</username></item></weappinfo></appmsg></msg>"""
         return if (WeMessageApi.sendXmlAppMsg(toUser, xml)) Result.Success(Unit)
         else Result.Error("Failed to send app brand message")
     }
@@ -290,19 +291,58 @@ object WeChatService {
         if (WeMessageApi.shareText(toUser, text, appId)) Result.Success(Unit)
         else Result.Error("Failed to share text")
 
-    fun shareMusic(toUser: String, title: String, description: String, musicUrl: String, musicDataUrl: String, thumbDataBase64: String?, appId: String): Result<Unit> {
+    fun shareMusic(
+        toUser: String,
+        title: String,
+        description: String,
+        musicUrl: String,
+        musicDataUrl: String,
+        thumbDataBase64: String?,
+        appId: String
+    ): Result<Unit> {
         val thumbData = thumbDataBase64?.let { Base64.decode(it, Base64.DEFAULT) }
         return if (WeMessageApi.shareMusic(toUser, title, description, musicUrl, musicDataUrl, thumbData, appId)) Result.Success(Unit)
         else Result.Error("Failed to share music")
     }
 
-    fun shareMusicVideo(toUser: String, title: String, description: String, musicUrl: String, musicDataUrl: String, singerName: String, duration: Int, songLyric: String, thumbDataBase64: String?, appId: String): Result<Unit> {
+    fun shareMusicVideo(
+        toUser: String,
+        title: String,
+        description: String,
+        musicUrl: String,
+        musicDataUrl: String,
+        singerName: String,
+        duration: Int,
+        songLyric: String,
+        thumbDataBase64: String?,
+        appId: String
+    ): Result<Unit> {
         val thumbData = thumbDataBase64?.let { Base64.decode(it, Base64.DEFAULT) }
-        return if (WeMessageApi.shareMusicVideo(toUser, title, description, musicUrl, musicDataUrl, singerName, duration, songLyric, thumbData, appId)) Result.Success(Unit)
+        return if (WeMessageApi.shareMusicVideo(
+                toUser,
+                title,
+                description,
+                musicUrl,
+                musicDataUrl,
+                singerName,
+                duration,
+                songLyric,
+                thumbData,
+                appId
+            )
+        ) Result.Success(Unit)
         else Result.Error("Failed to share music video")
     }
 
-    fun shareMiniProgram(toUser: String, title: String, description: String, username: String, path: String, thumbDataBase64: String?, appId: String): Result<Unit> {
+    fun shareMiniProgram(
+        toUser: String,
+        title: String,
+        description: String,
+        username: String,
+        path: String,
+        thumbDataBase64: String?,
+        appId: String
+    ): Result<Unit> {
         val thumbData = thumbDataBase64?.let { Base64.decode(it, Base64.DEFAULT) }
         return if (WeMessageApi.shareMiniProgram(toUser, title, description, username, path, thumbData, appId)) Result.Success(Unit)
         else Result.Error("Failed to share mini program")

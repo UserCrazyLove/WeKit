@@ -29,8 +29,10 @@ import kotlin.reflect.KProperty
 sealed interface BaseDexDelegate {
     val key: String
     fun getDescriptorString(): String?
+
     /** 从缓存字符串恢复状态 */
     fun loadDescriptor(value: String)
+
     /** 执行内联查找（如果是内联声明的话） */
     fun findInline(dexKit: DexKitBridge): Boolean = true
 }
@@ -101,7 +103,8 @@ class DexClassDelegate internal constructor(
             return false
         }
         if (results.size > 1 && !allowMultiple)
-            error("DexKit: Multiple classes found for key: $key, count: ${results.size}, classes: ${
+            error(
+                "DexKit: Multiple classes found for key: $key, count: ${results.size}, classes: ${
                 results.joinToString(",") { it.name }
             }")
 

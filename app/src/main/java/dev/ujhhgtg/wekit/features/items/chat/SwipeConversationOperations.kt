@@ -252,7 +252,6 @@ object SwipeConversationOperations : ClickableFeature(), IResolveDex {
         val content = group.getChildAt(0) ?: return
         val index = group.indexOfChild(content)
         val lp = content.layoutParams
-        WeLogger.i(TAG, "setUpRow: wrapping row=${group.javaClass.name} content=${content.javaClass.name} index=$index")
 
         val wrapper = FrameLayout(group.context)
         val panel = buildActionPanel(group.context, s)
@@ -494,6 +493,7 @@ object SwipeConversationOperations : ClickableFeature(), IResolveDex {
                     !s.startedOpen -> {
                         if (tx <= -s.revealWidth * 0.25f) settleOpen(s) else settleClosed(s)
                     }
+
                     tx <= -s.flyOutThreshold -> flyOutAndDelete(v, s)
                     tx <= -s.revealWidth * 0.5f -> settleOpen(s)
                     else -> settleClosed(s)
@@ -571,12 +571,14 @@ object SwipeConversationOperations : ClickableFeature(), IResolveDex {
                         )
                     }
                 }
+
                 Action.HIDE -> {
                     WeConversationApi.hideConversation(talker)
                     showToast("已隐藏")
                     settleClosed(s)
                     if (openState === s) openState = null
                 }
+
                 Action.PIN -> {
                     val newTop = !s.isPinned
                     WeConversationApi.setPinned(talker, newTop)
@@ -586,6 +588,7 @@ object SwipeConversationOperations : ClickableFeature(), IResolveDex {
                     settleClosed(s)
                     if (openState === s) openState = null
                 }
+
                 Action.MUTE -> {
                     val newMute = !s.isDnd
                     WeConversationApi.setDnd(talker, newMute)

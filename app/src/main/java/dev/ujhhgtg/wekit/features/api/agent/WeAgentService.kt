@@ -195,7 +195,8 @@ object WeAgentService : dev.ujhhgtg.wekit.agent.trigger.TriggerManager.TriggerHo
         val deferred: CompletableDeferred<ManualApprovalResult>,
     )
 
-    @Volatile private var initialized = false
+    @Volatile
+    private var initialized = false
 
     /**
      * Running turns keyed by sessionId. Multiple sessions can run concurrently (a foreground chat and
@@ -486,6 +487,7 @@ object WeAgentService : dev.ujhhgtg.wekit.agent.trigger.TriggerManager.TriggerHo
                     // Restore the persisted reasoning ("思考过程") so it survives a reload, matching
                     // the live view built from ReasoningDelta events.
                     rows += ChatRow(m.id, ChatRow.Role.ASSISTANT, m.content, reasoning = m.reasoning, createdAt = m.createdAt)
+
                 MessageRole.TOOL -> {
                     // The TOOL message id is "tool_<callId>" (assigned at write time — reliable, unlike
                     // parsing the content). Look the tool_calls row up by that callId to recover the
@@ -508,6 +510,7 @@ object WeAgentService : dev.ujhhgtg.wekit.agent.trigger.TriggerManager.TriggerHo
                         createdAt = m.createdAt,
                     )
                 }
+
                 MessageRole.SYSTEM -> Unit
             }
         }
@@ -587,11 +590,13 @@ object WeAgentService : dev.ujhhgtg.wekit.agent.trigger.TriggerManager.TriggerHo
         val onFetchSteer: (() -> String?)? = if (sendWhileRunningMode.value == SendWhileRunningMode.QUEUE_AS_STEER) ({
             val msg = queuedMessage.value
             if (msg != null) {
-                appendUiRow(ChatRow(
-                    id = "u_steer_${System.nanoTime()}",
-                    role = ChatRow.Role.USER,
-                    text = "(引导) $msg",
-                ))
+                appendUiRow(
+                    ChatRow(
+                        id = "u_steer_${System.nanoTime()}",
+                        role = ChatRow.Role.USER,
+                        text = "(引导) $msg",
+                    )
+                )
                 queuedMessage.value = null
             }
             msg
@@ -733,6 +738,7 @@ object WeAgentService : dev.ujhhgtg.wekit.agent.trigger.TriggerManager.TriggerHo
                 // Start a fresh assistant bubble for this round.
                 if (foreground) appendUiRow(ChatRow(id = "a_${System.nanoTime()}", role = ChatRow.Role.ASSISTANT, text = ""))
             }
+
             is AgentEvent.TextDelta -> if (foreground) appendToLastAssistant(text = ev.text)
             is AgentEvent.ReasoningDelta -> if (foreground) appendToLastAssistant(reasoning = ev.text)
             is AgentEvent.ToolCallStarted ->
@@ -742,6 +748,7 @@ object WeAgentService : dev.ujhhgtg.wekit.agent.trigger.TriggerManager.TriggerHo
                     appendToLastAssistant(endReasoning = true)
                     appendUiRow(ChatRow(id = "t_${ev.callId}", role = ChatRow.Role.TOOL, text = "", toolName = ev.toolName, toolInput = ev.argumentsJson))
                 }
+
             is AgentEvent.ToolAwaitingApproval -> if (foreground) ballState.value = BallState.PENDING_APPROVAL
             is AgentEvent.ToolCallFinished -> if (foreground) updateToolRow(ev.callId, ev.status, ev.resultText)
             is AgentEvent.UsageUpdated -> {
@@ -750,6 +757,7 @@ object WeAgentService : dev.ujhhgtg.wekit.agent.trigger.TriggerManager.TriggerHo
                 WeAgentRepository.updateSessionUsage(sessionId, ev.usage)
                 if (foreground) currentUsage.value = ev.usage
             }
+
             is AgentEvent.TurnCompleted -> if (foreground) refreshBallStateForForeground()
             is AgentEvent.MaxRequestsReached -> if (foreground) appendSystemNote("已达到最大调用次数（${ev.cap}）。")
             is AgentEvent.TurnFailed -> {
@@ -894,10 +902,19 @@ object WeAgentService : dev.ujhhgtg.wekit.agent.trigger.TriggerManager.TriggerHo
         override suspend fun onUserMessage(content: String) {
             WeAgentRepository.appendUserMessage(sessionId, content)
         }
+
         override suspend fun onAssistantMessage(content: String?, reasoning: String?, reasoningSignature: String?, toolCalls: List<LlmToolCall>) {
             WeAgentRepository.appendAssistantMessage(sessionId, content, reasoning, reasoningSignature, toolCalls)
         }
-        override suspend fun onToolResult(callId: String, toolName: String, providerId: String, argumentsJson: String, resultText: String, status: ApprovalStatus) {
+
+        override suspend fun onToolResult(
+            callId: String,
+            toolName: String,
+            providerId: String,
+            argumentsJson: String,
+            resultText: String,
+            status: ApprovalStatus
+        ) {
             WeAgentRepository.appendToolResult(sessionId, callId, toolName, providerId, argumentsJson, resultText, status)
         }
     }
@@ -906,7 +923,9 @@ object WeAgentService : dev.ujhhgtg.wekit.agent.trigger.TriggerManager.TriggerHo
     // UI-state mutation helpers (must run on Main)
     // -----------------------------------------------------------------------------------------
 
-    private fun appendUiRow(row: ChatRow) { uiMessages.add(row) }
+    private fun appendUiRow(row: ChatRow) {
+        uiMessages.add(row)
+    }
 
     private fun appendToLastAssistant(text: String? = null, reasoning: String? = null, endReasoning: Boolean = false) {
         val idx = uiMessages.indexOfLast { it.role == ChatRow.Role.ASSISTANT }
@@ -920,9 +939,9 @@ object WeAgentService : dev.ujhhgtg.wekit.agent.trigger.TriggerManager.TriggerHo
             //   text != null / tool call started / endReasoning → set false (reasoning phase over)
             //   all null, no endReasoning → preserve (shouldn't happen in practice)
             reasoningStreaming = when {
-                reasoning != null          -> true
+                reasoning != null -> true
                 text != null || endReasoning -> false
-                else                       -> cur.reasoningStreaming
+                else -> cur.reasoningStreaming
             },
         )
     }

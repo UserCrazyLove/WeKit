@@ -50,6 +50,7 @@ fun Modifier.innerShadow(
     shape: Shape,
     shadow: () -> InnerShadow?,
 ): Modifier = this then InnerShadowElement(shape, shadow)
+
 private class InnerShadowElement(
     val shape: Shape,
     val shadow: () -> InnerShadow?,
@@ -83,6 +84,7 @@ private class InnerShadowElement(
         return result
     }
 }
+
 private class InnerShadowNode(
     var shape: Shape,
     var shadow: () -> InnerShadow?,

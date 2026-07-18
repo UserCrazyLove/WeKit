@@ -431,9 +431,11 @@ object AddMainScreenFab : ClickableFeature() {
                             }
 
                             Text("选择展示图标:", fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
-                            Row(modifier = Modifier
-                                .horizontalScroll(rememberScrollState())
-                                .padding(vertical = 6.dp)) {
+                            Row(
+                                modifier = Modifier
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(vertical = 6.dp)
+                            ) {
                                 iconPool.keys.forEach { iconName ->
                                     val isSelected = newIconName == iconName
                                     Box(
@@ -451,9 +453,11 @@ object AddMainScreenFab : ClickableFeature() {
                                 }
                             }
 
-                            Row(horizontalArrangement = Arrangement.End, modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 16.dp)) {
+                            Row(
+                                horizontalArrangement = Arrangement.End, modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp)
+                            ) {
                                 TextButton({ showAddSection = false }) { Text("返回列表") }
                                 TextButton({
                                     if (newName.isNotBlank() && (newType != FabType.START_ACTIVITY || newActivity.isNotBlank())) {

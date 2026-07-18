@@ -77,6 +77,7 @@ inline val Activity.rootView: ViewGroup
 inline fun Int.dpToPx(context: Context): Int =
     (this * context.resources.displayMetrics.density).toInt()
 
-val View.idString get() = if (this.id != View.NO_ID) {
-    runCatching { this.resources.getResourceEntryName(this.id) }.getOrDefault(null)
-} else null
+val View.idString
+    get() = if (this.id != View.NO_ID) {
+        runCatching { this.resources.getResourceEntryName(this.id) }.getOrDefault(null)
+    } else null

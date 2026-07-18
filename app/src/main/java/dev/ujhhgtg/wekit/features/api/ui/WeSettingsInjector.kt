@@ -42,7 +42,7 @@ object WeSettingsInjector : ApiFeature(), IResolveDex, WeChatInputBarApi.IInputB
     private val methodGetKey by dexMethod()
     private val methodAddPref by dexMethod()
 
-    // method 2
+    // modern method
     private val classSettingItemClassesProvider by dexClass(allowFailure = true) {
         matcher {
             usingEqStrings("Repairer_Setting")
@@ -234,13 +234,11 @@ object WeSettingsInjector : ApiFeature(), IResolveDex, WeChatInputBarApi.IInputB
 
         runCatching {
             injectLegacy()
-        }.onFailure { WeLogger.w(TAG, "failed to hook legacy settings") }
+        }.onFailure { WeLogger.w(TAG, "failed to inject into legacy settings") }
 
-        // injectModernMethod1()
         runCatching {
-            injectModernMethod2()
-        }.onFailure { WeLogger.w(TAG, "failed to hook modern settings") }
-        // injectModernMethod3()
+            injectModern()
+        }.onFailure { WeLogger.w(TAG, "failed to inject into modern settings") }
     }
 
     override fun onDisable() {
@@ -298,31 +296,6 @@ object WeSettingsInjector : ApiFeature(), IResolveDex, WeChatInputBarApi.IInputB
             }
     }
 
-//    private fun injectModernMethod1() {
-//        val newSettingsCls =
-//            "com.tencent.mm.plugin.setting.ui.setting_new.base.BaseSettingPrefUI"
-//                .toClassOrNull() ?: return
-//
-//        newSettingsCls.reflekt().firstMethod { name = "onCreate" }.hookAfter {
-//            if (thisObject.javaClass.name
-//                != "com.tencent.mm.plugin.setting.ui.setting_new.MainSettingsUI"
-//            ) return@hookAfter
-//
-//            val activity = thisObject as Activity
-//            activity.reflekt()
-//                .firstMethod {
-//                    name = "addTextOptionMenu"
-//                    parameters(
-//                        Int::class,
-//                        String::class,
-//                        MenuItem.OnMenuItemClickListener::class
-//                    )
-//                    superclass()
-//                }
-//                .invoke(0, BuildConfig.TAG, SettingsMenuItemClickListener(activity))
-//        }
-//    }
-
     private lateinit var mGetPageGroupItemClass: String
     private lateinit var mGetLevel: String
     private lateinit var mOnClick: String
@@ -371,7 +344,7 @@ object WeSettingsInjector : ApiFeature(), IResolveDex, WeChatInputBarApi.IInputB
         }
     }
 
-    private fun injectModernMethod2() {
+    private fun injectModern() {
         "${PackageNames.WECHAT}.plugin.setting.ui.setting_new.settings.SettingGroupMain".toClassOrNull()
             ?: run {
                 WeLogger.w(TAG, "modern settings class not found, skipping")
@@ -409,125 +382,8 @@ object WeSettingsInjector : ApiFeature(), IResolveDex, WeChatInputBarApi.IInputB
 //            onSwitchChanged = { Preferences.verboseLog = it }
 //        }
 //
-//        // --- doesn't work ---
-//        val group = settingsManager.createItem {
-//            key = "SettingGroup_Main_WeKit"
-//            title = "测试 3 - WeKit 设置 - 原生"
-////            groupTitle = "测试"
-//            level = 1
-//            pageClass = SettingGroupMain::class.java
-//            parentClass = item3
-//
-//            onClick = {
-//                val subPageIntent = Intent {
-//                    putExtra("key_config_item", "SettingGroup_Main_WeKit")
-//                    putExtra("page_name_kv", "SettingGroup_Main_WeKit")
-//                    putExtra("ui_version", 2)
-//                    putExtra("setting_from_source", it.intent.getIntExtra("setting_from_source", 2))
-//                    putExtra("setting_level", 2)
-//                    putExtra("setting_page_time", System.currentTimeMillis().toString())
-//                    putStringArrayListExtra("key_intent_action_uic_list", arrayListOf(classIntentAction.clazz.name))
-////                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-//                }
-//
-//                methodPluginHelperLaunchIntent.method.invoke(null,
-//                    it, "setting", ".ui.setting_new.CommonSettingsUI", subPageIntent, true, null)
-//            }
-//        }
-//
-////        val newPagePageClass = SettingGroupMain::class.java
-//        val newPagePageClass = group
-//
-//        val newPageItem1 = settingsManager.createItem {
-//            key = "SettingGroup_Main_WeKit_Test1"
-//            title = "聊天"
-//            groupTitle = "功能"
-//            level = 2
-//            pageClass = newPagePageClass
-//            parentClass = null
-//
-//            onClick = { CategorySettingsScreen("聊天").show(it) }
-//        }
-//
-//        val newPageItem2 = settingsManager.createItem {
-//            key = "SettingGroup_Main_WeKit_Test2"
-//            title = "联系人与群组"
-//            level = 2
-//            pageClass = newPagePageClass
-//            parentClass = newPageItem1
-//
-//            onClick = { CategorySettingsScreen("联系人与群组").show(it) }
-//        }
-//
-//        val newPageItem3 = settingsManager.createItem {
-//            key = "SettingGroup_Main_WeKit_Test3"
-//            title = "红包与支付"
-//            level = 2
-//            pageClass = newPagePageClass
-//            parentClass = newPageItem2
-//
-//            onClick = { CategorySettingsScreen("红包与支付").show(it) }
-//        }
-//        // --- end doesn't work ---
-//
-//        val item4 = settingsManager.createItem {
-//            key = "SettingGroup_Main_WeKitTest4"
-//            title = "聊天"
-//            groupTitle = "插件 - 功能"
-//            level = 1
-//            pageClass = SettingGroupMain::class.java
-//            parentClass = group
-//
-//            onClick = { CategorySettingsScreen("聊天").show(it) }
-//        }
-//
-//        val item5 = settingsManager.createItem {
-//            key = "SettingGroup_Main_WeKitTest5"
-//            title = "聊天 - 阻止消息撤回 3"
-//            level = 1
-//            isSwitch = true
-//            pageClass = SettingGroupMain::class.java
-//            parentClass = item4
-//
-//            switchState = { WePrefs.getBoolOrFalse("阻止消息撤回 3") }
-//            onSwitchChanged = { WePrefs.putBool("阻止消息撤回 3", it) }
-//        }
-//
-//        val item6 = settingsManager.createItem {
-//            key = "SettingGroup_Main_WeKitTest6"
-//            title = "联系人与群组"
-//            level = 1
-//            pageClass = SettingGroupMain::class.java
-//            parentClass = item5
-//
-//            onClick = { CategorySettingsScreen("联系人与群组").show(it) }
-//        }
-//
-//        val item7 = settingsManager.createItem {
-//            key = "SettingGroup_Main_WeKitTest7"
-//            title = "红包与支付"
-//            level = 1
-//            pageClass = SettingGroupMain::class.java
-//            parentClass = item6
-//            childClass = SettingGroupPersonalInfo::class.java
-//
-//            onClick = { CategorySettingsScreen("红包与支付").show(it) }
-//        }
-
         settingsManager.install()
     }
-
-//    private fun injectModernMethod3() {
-//        if (methodSettingGroupPluginOnClick.isPlaceholder) {
-//            WeLogger.w(TAG, "methodSettingGroupPluginOnClick not found, skipping")
-//            return
-//        }
-//        methodSettingGroupPluginOnClick.hookBefore {
-//            val context = args[0] as Context
-//            openSettingsDialog(context)
-//            result = null
-//        }
-//    }
 
     private fun hookLauncherUi() {
         LauncherUI::class.reflekt().apply {

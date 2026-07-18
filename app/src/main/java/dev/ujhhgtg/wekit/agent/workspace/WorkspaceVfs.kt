@@ -123,16 +123,16 @@ class WorkspaceVfs(
             } else {
                 // Range segment: "N:M", "N:", ":M", ":"
                 val startStr = seg.substring(0, colon).trim()
-                val endStr   = seg.substring(colon + 1).trim()
+                val endStr = seg.substring(colon + 1).trim()
                 val startN = if (startStr.isEmpty()) 1
-                             else startStr.toIntOrNull()
-                                  ?: return@guarded "Invalid range spec — expected integer before ':' in segment '$seg'"
-                val endN   = if (endStr.isEmpty()) -1
-                             else endStr.toIntOrNull()
-                                  ?: return@guarded "Invalid range spec — expected integer after ':' in segment '$seg'"
+                else startStr.toIntOrNull()
+                    ?: return@guarded "Invalid range spec — expected integer before ':' in segment '$seg'"
+                val endN = if (endStr.isEmpty()) -1
+                else endStr.toIntOrNull()
+                    ?: return@guarded "Invalid range spec — expected integer after ':' in segment '$seg'"
                 // Resolve negative indices relative to EOF before range-order check.
                 val rawFrom = if (startN < 0) total + startN else startN - 1
-                val rawTo   = if (endN   < 0) total + endN   else endN   - 1
+                val rawTo = if (endN < 0) total + endN else endN - 1
                 if (rawFrom > rawTo) return@guarded "Reversed range in '$seg': start (line ${rawFrom + 1}) is after end (line ${rawTo + 1})"
                 resolved.add(ResolvedRange(rawFrom.coerceIn(0, total - 1), rawTo.coerceIn(0, total - 1)))
             }
@@ -142,7 +142,9 @@ class WorkspaceVfs(
 
         // Collect line indices in file order, deduplicating any overlaps between segments.
         val lineIndices = sortedSetOf<Int>()
-        for (rng in resolved) { for (i in rng.from..rng.to) lineIndices.add(i) }
+        for (rng in resolved) {
+            for (i in rng.from..rng.to) lineIndices.add(i)
+        }
 
         val header = resolved.joinToString(", ") { rng ->
             if (rng.from == rng.to) "line ${rng.from + 1}" else "lines ${rng.from + 1}–${rng.to + 1}"
@@ -239,8 +241,13 @@ class WorkspaceVfs(
     // -----------------------------------------------------------------------------------------
 
     private inline fun guarded(block: () -> String): String =
-        try { block() } catch (e: VfsException) { "Error: ${e.message}" }
-            catch (e: Throwable) { "File operation failed: ${e.message ?: e.javaClass.simpleName}" }
+        try {
+            block()
+        } catch (e: VfsException) {
+            "Error: ${e.message}"
+        } catch (e: Throwable) {
+            "File operation failed: ${e.message ?: e.javaClass.simpleName}"
+        }
 
     private fun resolve(virtualPath: String): Resolved {
         val normalized = virtualPath.trim()
@@ -262,8 +269,10 @@ class WorkspaceVfs(
         val rootDir = when (root) {
             Root.WORKSPACE -> workspaceRoot
                 ?: throw VfsException("No workspace is bound to this session; '/workspace/' is unavailable.")
+
             Root.MEMORY -> memoryRoot
                 ?: throw VfsException("Memory is disabled; '/memory/' is unavailable.")
+
             Root.CACHE -> cacheRoot
         }
 

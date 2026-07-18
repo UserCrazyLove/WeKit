@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import dev.ujhhgtg.wekit.agent.data.entity.TriggerEntity
-import java.time.Instant
 import kotlinx.coroutines.flow.Flow
+import java.time.Instant
 
 @Dao
 interface TriggerDao {

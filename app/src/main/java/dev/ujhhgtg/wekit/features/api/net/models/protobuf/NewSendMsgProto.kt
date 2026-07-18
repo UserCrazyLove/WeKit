@@ -34,4 +34,4 @@ data class NewSendMsgItemProto(
     @ProtoNumber(4) override val createTime: Int = 0,
     @ProtoNumber(5) override val clientMsgId: Int = 0,
     @ProtoNumber(6) val msgSource: String = "",
-): INewSendMsgProto
+) : INewSendMsgProto

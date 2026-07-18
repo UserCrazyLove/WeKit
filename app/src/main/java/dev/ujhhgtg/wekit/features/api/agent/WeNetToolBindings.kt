@@ -70,10 +70,10 @@ object WeNetToolBindings {
             val path = v.writeToCacheSpill(prefix, extension, content)
             val preview = content.take(500)
             "[Output truncated — ${content.length} chars total. Full content saved to $path. " +
-                "Use read_file with startLine/endLine to read it in parts.]\n\n$preview\n…"
+                    "Use read_file with startLine/endLine to read it in parts.]\n\n$preview\n…"
         } else {
             content.take(SPILL_THRESHOLD_CHARS) +
-                "\n\n[Truncated at $SPILL_THRESHOLD_CHARS chars — VFS unavailable for spill]"
+                    "\n\n[Truncated at $SPILL_THRESHOLD_CHARS chars — VFS unavailable for spill]"
         }
     }
 
@@ -84,8 +84,8 @@ object WeNetToolBindings {
     @AgentTool(
         name = "fetch-text",
         description = "Fetch a web page and return its main text content (HTML tags stripped by Jsoup). " +
-            "If the page text exceeds the inline size cap, the full content is saved to a /cache/ file " +
-            "and a truncation notice with the path is returned; use read_file to page through it.",
+                "If the page text exceeds the inline size cap, the full content is saved to a /cache/ file " +
+                "and a truncation notice with the path is returned; use read_file to page through it.",
         sideEffect = false,
         group = AgentTool.BUILTIN_NET,
     )
@@ -122,7 +122,7 @@ object WeNetToolBindings {
     @AgentTool(
         name = "http-request",
         description = "Execute an arbitrary HTTP request and return a JSON object with statusCode, headers, and body. " +
-            "If the response body exceeds the inline size cap it is saved to /cache/ and a truncation notice is returned.",
+                "If the response body exceeds the inline size cap it is saved to /cache/ and a truncation notice is returned.",
         sideEffect = true,
         group = AgentTool.BUILTIN_NET,
     )
@@ -131,7 +131,7 @@ object WeNetToolBindings {
         @AgentToolParam("HTTP method: GET, POST, PUT, PATCH, DELETE, HEAD") method: String,
         @AgentToolParam(
             "Request headers as a JSON object, " +
-            "e.g. {\"Authorization\":\"Bearer …\",\"Content-Type\":\"application/json\"}"
+                    "e.g. {\"Authorization\":\"Bearer …\",\"Content-Type\":\"application/json\"}"
         ) headersJson: String?,
         @AgentToolParam("Request body string (for JSON also set Content-Type in headers)") body: String?,
         @AgentToolParam("Request timeout in seconds (default 30, max 300)") timeoutSeconds: Int?,
@@ -191,7 +191,7 @@ object WeNetToolBindings {
     @AgentTool(
         name = "exa-search",
         description = "Search the web with Exa AI (requires an Exa API key in External Services settings). " +
-            "Returns a JSON list of results: title, url, publishedDate, snippet.",
+                "Returns a JSON list of results: title, url, publishedDate, snippet.",
         sideEffect = false,
         group = AgentTool.BUILTIN_NET,
     )
@@ -266,7 +266,7 @@ object WeNetToolBindings {
     @AgentTool(
         name = "brave-search",
         description = "Search the web with Brave Search (requires a Brave Search API key in External Services settings). " +
-            "Returns a JSON list of results: title, url, description.",
+                "Returns a JSON list of results: title, url, description.",
         sideEffect = false,
         group = AgentTool.BUILTIN_NET,
     )

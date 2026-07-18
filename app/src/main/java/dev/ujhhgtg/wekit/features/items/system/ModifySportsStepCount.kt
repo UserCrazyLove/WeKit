@@ -62,7 +62,9 @@ object ModifySportsStepCount : ClickableFeature(), IResolveDex {
     private var passiveModeStr by prefOption("step_passive_mode", PassiveMode.FIXED.name)
     private var passiveMode: PassiveMode
         get() = runCatching { PassiveMode.valueOf(passiveModeStr) }.getOrDefault(PassiveMode.FIXED)
-        set(v) { passiveModeStr = v.name }
+        set(v) {
+            passiveModeStr = v.name
+        }
 
     private var passiveValue by prefOption("step_passive_value", -1L)
 

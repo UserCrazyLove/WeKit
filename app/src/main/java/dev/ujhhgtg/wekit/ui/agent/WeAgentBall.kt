@@ -97,6 +97,7 @@ fun WeAgentBall(
                             onDragStart()
                             true
                         }
+
                         MotionEvent.ACTION_MOVE -> {
                             val dx = event.rawX - tracker.downRawX
                             val dy = event.rawY - tracker.downRawY
@@ -106,14 +107,17 @@ fun WeAgentBall(
                             if (tracker.moved) onDrag(dx, dy)
                             true
                         }
+
                         MotionEvent.ACTION_UP -> {
                             if (tracker.moved) onDragEnd() else onClick()
                             true
                         }
+
                         MotionEvent.ACTION_CANCEL -> {
                             if (tracker.moved) onDragEnd()
                             true
                         }
+
                         else -> false
                     }
                 },

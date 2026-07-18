@@ -4,6 +4,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import com.tencent.mm.pluginsdk.ui.chat.ChatFooter
 import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.wekit.features.api.ui.WeChatInputBarApi.addListener
 import dev.ujhhgtg.wekit.features.core.ApiFeature
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.utils.WeLogger

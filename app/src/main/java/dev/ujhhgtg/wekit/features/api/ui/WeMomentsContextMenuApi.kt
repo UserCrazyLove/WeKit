@@ -213,7 +213,7 @@ object WeMomentsContextMenuApi : ApiFeature(), IResolveDex {
             WeLogger.w(
                 TAG,
                 "snsInfo is null, activity=${activity.javaClass.name}, listener=${listener.javaClass.name}, " +
-                    "timeline=${describeTimeline(timeLineObject)}, stringFields=${readStringFields(listener)}"
+                        "timeline=${describeTimeline(timeLineObject)}, stringFields=${readStringFields(listener)}"
             )
         }
         return MomentsContext(activity, snsInfo, timeLineObject, listener)
@@ -227,7 +227,7 @@ object WeMomentsContextMenuApi : ApiFeature(), IResolveDex {
 
         val info = findObjectInFields(click) { obj ->
             hasNoArgMethodReturning(obj, "com.tencent.mm.plugin.sns.storage.SnsInfo") &&
-                hasNoArgMethodReturning(obj, "com.tencent.mm.protocal.protobuf.TimeLineObject")
+                    hasNoArgMethodReturning(obj, "com.tencent.mm.protocal.protobuf.TimeLineObject")
         } ?: return null
 
         val snsInfo = invokeNoArgReturning(info, "com.tencent.mm.plugin.sns.storage.SnsInfo")
@@ -236,8 +236,8 @@ object WeMomentsContextMenuApi : ApiFeature(), IResolveDex {
             WeLogger.w(
                 TAG,
                 "failed to resolve Improve Moments context values, listener=${listener.javaClass.name}, " +
-                    "click=${click.javaClass.name}, info=${info.javaClass.name}, snsInfo=${snsInfo?.javaClass?.name}, " +
-                    "timeline=${timeLineObject?.javaClass?.name}"
+                        "click=${click.javaClass.name}, info=${info.javaClass.name}, snsInfo=${snsInfo?.javaClass?.name}, " +
+                        "timeline=${timeLineObject?.javaClass?.name}"
             )
         }
         return MomentsContext(activity, snsInfo, timeLineObject, listener)
@@ -327,7 +327,7 @@ object WeMomentsContextMenuApi : ApiFeature(), IResolveDex {
     private fun hasImproveInfoField(target: Any): Boolean {
         return findObjectInFields(target) { obj ->
             hasNoArgMethodReturning(obj, "com.tencent.mm.plugin.sns.storage.SnsInfo") &&
-                hasNoArgMethodReturning(obj, "com.tencent.mm.protocal.protobuf.TimeLineObject")
+                    hasNoArgMethodReturning(obj, "com.tencent.mm.protocal.protobuf.TimeLineObject")
         } != null
     }
 

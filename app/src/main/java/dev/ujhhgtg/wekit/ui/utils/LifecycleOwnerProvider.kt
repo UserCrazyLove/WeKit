@@ -41,9 +41,11 @@ object LifecycleOwnerProvider {
                     override fun onActivityStarted(act: Activity) {
                         if (act === activity) customOwner.onStart()
                     }
+
                     override fun onActivityResumed(act: Activity) {
                         if (act === activity) customOwner.onResume()
                     }
+
                     override fun onActivitySaveInstanceState(act: Activity, outState: Bundle) {}
                 })
             }

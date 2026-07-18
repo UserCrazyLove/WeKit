@@ -1,12 +1,14 @@
 package dev.ujhhgtg.wekit.utils.serialization
 
+import java.io.Reader
+
 object NativeXmlParser {
 
     @Suppress("NOTHING_TO_INLINE")
     inline fun toXmlObject(string: String, configuration: XmlParserConfiguration = XmlParserConfiguration()): XmlObject =
         toXmlObject(string.reader(), configuration)
 
-    fun toXmlObject(reader: java.io.Reader, config: XmlParserConfiguration = XmlParserConfiguration()): XmlObject {
+    fun toXmlObject(reader: Reader, config: XmlParserConfiguration = XmlParserConfiguration()): XmlObject {
         val context = XmlAccumulator()
         val tokener = XmlTokener(reader, config)
         while (tokener.more()) {
@@ -109,7 +111,8 @@ object NativeXmlParser {
                         }
                     } else if (token == '/') {
                         if (x.nextToken() != '>') throw x.syntaxError("Misshaped tag")
-                        val emptyValue: XmlValue = if (nilAttributeFound) XmlNull else if (elementObj.isEmpty()) XmlPrimitive("") else elementObj.toXmlValue(config.forceList)
+                        val emptyValue: XmlValue =
+                            if (nilAttributeFound) XmlNull else if (elementObj.isEmpty()) XmlPrimitive("") else elementObj.toXmlValue(config.forceList)
 
                         if (tagName in config.forceList) {
                             if (nilAttributeFound) context.append(tagName, XmlNull)
@@ -130,12 +133,14 @@ object NativeXmlParser {
                                         elementObj.accumulate(config.cDataTagName, XmlPrimitive(text))
                                     }
                                 }
+
                                 '<' -> {
                                     if (currentNestingDepth == config.maxNestingDepth) {
                                         throw x.syntaxError("Maximum nesting depth reached")
                                     }
                                     if (parse(x, elementObj, tagName, config, currentNestingDepth + 1)) {
-                                        val value: XmlValue? = if (elementObj.isEmpty()) null else if (elementObj.size == 1) elementObj.singleValue(config.cDataTagName) else null
+                                        val value: XmlValue? =
+                                            if (elementObj.isEmpty()) null else if (elementObj.size == 1) elementObj.singleValue(config.cDataTagName) else null
                                         if (tagName in config.forceList) {
                                             when {
                                                 elementObj.isEmpty() -> context.put(tagName, XmlArray(emptyList()))
@@ -158,6 +163,7 @@ object NativeXmlParser {
                                         return false
                                     }
                                 }
+
                                 else -> throw x.syntaxError("Misshaped tag")
                             }
                         }

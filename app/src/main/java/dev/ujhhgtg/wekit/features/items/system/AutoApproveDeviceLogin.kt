@@ -3,9 +3,9 @@ package dev.ujhhgtg.wekit.features.items.system
 import android.app.Activity
 import android.widget.Button
 import com.tencent.mm.plugin.webwx.ui.ExtDeviceWXLoginUI
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
-import dev.ujhhgtg.reflekt.reflekt
 
 @Feature(name = "自动批准设备登录", categories = ["系统与隐私"], description = "其他设备请求登录时自动勾选选项并点击按钮")
 object AutoApproveDeviceLogin : SwitchFeature() {

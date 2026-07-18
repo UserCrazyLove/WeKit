@@ -33,7 +33,14 @@ object RepeatMessages : SwitchFeature(), WeChatMessageContextMenuApi.IMenuItemsP
 
     @Suppress("DEPRECATION")
     private val SUPPORTED_MSG_TYPES = setOf(
-        MessageType.TEXT, MessageType.QUOTE, MessageType.APP, MessageType.IMAGE, MessageType.VOICE, MessageType.MICRO_VIDEO, MessageType.STICKER, MessageType.SO_GOU_EMOJI
+        MessageType.TEXT,
+        MessageType.QUOTE,
+        MessageType.APP,
+        MessageType.IMAGE,
+        MessageType.VOICE,
+        MessageType.MICRO_VIDEO,
+        MessageType.STICKER,
+        MessageType.SO_GOU_EMOJI
     )
 
     fun isSupported(msgInfo: MessageInfo): Boolean = msgInfo.type in SUPPORTED_MSG_TYPES

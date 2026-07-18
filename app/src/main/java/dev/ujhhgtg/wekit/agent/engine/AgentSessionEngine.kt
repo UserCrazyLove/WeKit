@@ -143,8 +143,14 @@ class AgentSessionEngine(
 
                 config.client.stream(request).collect { ev ->
                     when (ev) {
-                        is LlmStreamEvent.TextDelta -> { textBuf.append(ev.text); send(AgentEvent.TextDelta(ev.text)) }
-                        is LlmStreamEvent.ReasoningDelta -> { reasoningBuf.append(ev.text); send(AgentEvent.ReasoningDelta(ev.text)) }
+                        is LlmStreamEvent.TextDelta -> {
+                            textBuf.append(ev.text); send(AgentEvent.TextDelta(ev.text))
+                        }
+
+                        is LlmStreamEvent.ReasoningDelta -> {
+                            reasoningBuf.append(ev.text); send(AgentEvent.ReasoningDelta(ev.text))
+                        }
+
                         is LlmStreamEvent.Completed -> completed = ev
                         is LlmStreamEvent.Failed -> failure = ev.error
                     }
@@ -252,6 +258,7 @@ class AgentSessionEngine(
                     .getOrElse { "工具执行失败：${it.message ?: it.javaClass.simpleName}" }
                 Triple(result, status, tool.provider.id)
             }
+
             is ApprovalDecision.Denied -> {
                 val status = if (decision.bySmartReview) ApprovalStatus.AI_REJECTED else ApprovalStatus.USER_REJECTED
                 Triple(approvalGateway.deniedResultText(decision), status, tool.provider.id)

@@ -368,6 +368,7 @@ fun LogsPager() {
                                                 when (kind) {
                                                     LogKind.RUN -> WeLogger.allLogFiles
                                                         .forEach { runCatching { it.toFile().delete() } }
+
                                                     LogKind.CRASH -> CrashLogsManager.deleteAllCrashLogs()
                                                 }
                                             }

@@ -126,7 +126,15 @@ fun PromptsScreen(onBack: () -> Unit) {
         onDelete = editSystem?.id?.takeIf { it.isNotEmpty() }?.let { id -> { scope.launch { WeAgentRepository.deleteSystemPrompt(id) }; editSystem = null } },
         onSave = { name, content ->
             editSystem?.let { entity ->
-                scope.launch { WeAgentRepository.upsertSystemPrompt(entity.copy(id = entity.id.ifEmpty { UUID.randomUUID().toString() }, name = name, content = content)) }
+                scope.launch {
+                    WeAgentRepository.upsertSystemPrompt(
+                        entity.copy(
+                            id = entity.id.ifEmpty { UUID.randomUUID().toString() },
+                            name = name,
+                            content = content
+                        )
+                    )
+                }
             }
             editSystem = null
         },
@@ -137,10 +145,19 @@ fun PromptsScreen(onBack: () -> Unit) {
         field1Label = "标题（可选）", field1 = editPerTurn?.title.orEmpty(),
         field2Label = "每轮提示词内容", field2 = editPerTurn?.content.orEmpty(), field2MaxLines = 8,
         onDismiss = { editPerTurn = null },
-        onDelete = editPerTurn?.id?.takeIf { it.isNotEmpty() }?.let { id -> { scope.launch { WeAgentRepository.deletePerTurnPrompt(id) }; editPerTurn = null } },
+        onDelete = editPerTurn?.id?.takeIf { it.isNotEmpty() }
+            ?.let { id -> { scope.launch { WeAgentRepository.deletePerTurnPrompt(id) }; editPerTurn = null } },
         onSave = { title, content ->
             editPerTurn?.let { entity ->
-                scope.launch { WeAgentRepository.upsertPerTurnPrompt(entity.copy(id = entity.id.ifEmpty { UUID.randomUUID().toString() }, title = title, content = content)) }
+                scope.launch {
+                    WeAgentRepository.upsertPerTurnPrompt(
+                        entity.copy(
+                            id = entity.id.ifEmpty { UUID.randomUUID().toString() },
+                            title = title,
+                            content = content
+                        )
+                    )
+                }
             }
             editPerTurn = null
         },
@@ -151,10 +168,19 @@ fun PromptsScreen(onBack: () -> Unit) {
         field1Label = "触发正则", field1 = editConditional?.regex.orEmpty(),
         field2Label = "注入内容", field2 = editConditional?.content.orEmpty(), field2MaxLines = 8,
         onDismiss = { editConditional = null },
-        onDelete = editConditional?.id?.takeIf { it.isNotEmpty() }?.let { id -> { scope.launch { WeAgentRepository.deleteConditionalPrompt(id) }; editConditional = null } },
+        onDelete = editConditional?.id?.takeIf { it.isNotEmpty() }
+            ?.let { id -> { scope.launch { WeAgentRepository.deleteConditionalPrompt(id) }; editConditional = null } },
         onSave = { regex, content ->
             editConditional?.let { entity ->
-                scope.launch { WeAgentRepository.upsertConditionalPrompt(entity.copy(id = entity.id.ifEmpty { UUID.randomUUID().toString() }, regex = regex, content = content)) }
+                scope.launch {
+                    WeAgentRepository.upsertConditionalPrompt(
+                        entity.copy(
+                            id = entity.id.ifEmpty { UUID.randomUUID().toString() },
+                            regex = regex,
+                            content = content
+                        )
+                    )
+                }
             }
             editConditional = null
         },
@@ -168,7 +194,15 @@ fun PromptsScreen(onBack: () -> Unit) {
         onDelete = editPreset?.id?.takeIf { it.isNotEmpty() }?.let { id -> { scope.launch { WeAgentRepository.deletePresetPrompt(id) }; editPreset = null } },
         onSave = { title, content ->
             editPreset?.let { entity ->
-                scope.launch { WeAgentRepository.upsertPresetPrompt(entity.copy(id = entity.id.ifEmpty { UUID.randomUUID().toString() }, title = title, content = content)) }
+                scope.launch {
+                    WeAgentRepository.upsertPresetPrompt(
+                        entity.copy(
+                            id = entity.id.ifEmpty { UUID.randomUUID().toString() },
+                            title = title,
+                            content = content
+                        )
+                    )
+                }
             }
             editPreset = null
         },

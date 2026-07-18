@@ -1,9 +1,9 @@
 package dev.ujhhgtg.wekit.features.api.core
 
 import android.annotation.SuppressLint
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import dev.ujhhgtg.wekit.features.core.ApiFeature
 import dev.ujhhgtg.wekit.features.core.Feature
-import dev.ujhhgtg.reflekt.utils.makeAccessible
 import java.lang.reflect.Method
 
 @Feature(name = "Unsafe 服务", categories = ["API"], description = "提供调用 sun.misc.Unsafe 功能的能力")

@@ -83,6 +83,7 @@ object SwipeMessageOperations : ClickableFeature(), IResolveDex,
 
     private var enableSecondary by prefOption("swipe_to_quote_or_repeat_right_repeat", false)
     private var swapDirections by prefOption("swipe_to_quote_or_repeat_swap_dir", false)
+
     // When true, the secondary (non-quote) swipe action is "edit" instead of "repeat".
     private var useEditInsteadOfRepeat by prefOption("swipe_secondary_action_edit", false)
 

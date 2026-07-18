@@ -50,7 +50,8 @@ class InteractiveHighlight(
 
     @Language("AGSL")
     private val shader =
-        RuntimeShader("""
+        RuntimeShader(
+            """
 uniform float2 size;
 layout(color) uniform half4 color;
 uniform float radius;
@@ -61,7 +62,8 @@ half4 main(float2 coord) {
     float intensity = smoothstep(radius, radius * 0.5, dist);
     return color * intensity;
 }
-""")
+"""
+        )
 
     val modifier: Modifier =
         Modifier.drawWithContent {

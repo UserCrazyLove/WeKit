@@ -22,7 +22,6 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import kotlinx.serialization.json.putJsonObject
 
 /**
  * [LlmClient] adapter for the **Gemini Interactions** (modern) wire format:
@@ -100,6 +99,7 @@ class GeminiInteractionsClient(
                 line.startsWith("event:") -> {
                     eventType = line.removePrefix("event:").trim()
                 }
+
                 line.startsWith("data:") -> {
                     val data = line.removePrefix("data:").trim()
                     if (data.isEmpty()) continue
@@ -116,10 +116,13 @@ class GeminiInteractionsClient(
                                     // Thought summary text may be available immediately in step.start.
                                     step["summary"]?.jsonArray?.forEach { el ->
                                         el.jsonObject["text"]?.jsonPrimitive?.contentOrNullSafe()?.let { t ->
-                                            if (t.isNotEmpty()) { reasoningBuf.append(t); emit(LlmStreamEvent.ReasoningDelta(t)) }
+                                            if (t.isNotEmpty()) {
+                                                reasoningBuf.append(t); emit(LlmStreamEvent.ReasoningDelta(t))
+                                            }
                                         }
                                     }
                                 }
+
                                 "function_call" -> {
                                     // Register the call; arguments may trickle in via step.delta.
                                     val id = step["id"]?.jsonPrimitive?.contentOrNullSafe() ?: "call_$stepIndex"
@@ -129,7 +132,7 @@ class GeminiInteractionsClient(
                                     // Arguments may already be present in step.start.
                                     step["arguments"]?.let { args ->
                                         val pc = pendingCalls[stepIndex] ?: return@let
-                                        if (args is kotlinx.serialization.json.JsonObject) {
+                                        if (args is JsonObject) {
                                             // Full args object up front — serialise directly.
                                             pc.argsBuf.append(LlmJson.json.encodeToString(JsonObject.serializer(), args))
                                             pc.argsFromObject = true
@@ -138,13 +141,16 @@ class GeminiInteractionsClient(
                                         }
                                     }
                                 }
+
                                 "model_output" -> {
                                     // Initial content may contain text blocks.
                                     step["content"]?.jsonArray?.forEach { el ->
                                         el.jsonObject.let { part ->
                                             if (part["type"]?.jsonPrimitive?.contentOrNullSafe() == "text") {
                                                 part["text"]?.jsonPrimitive?.contentOrNullSafe()?.let { t ->
-                                                    if (t.isNotEmpty()) { textBuf.append(t); emit(LlmStreamEvent.TextDelta(t)) }
+                                                    if (t.isNotEmpty()) {
+                                                        textBuf.append(t); emit(LlmStreamEvent.TextDelta(t))
+                                                    }
                                                 }
                                             }
                                         }
@@ -158,17 +164,22 @@ class GeminiInteractionsClient(
                             val delta = ev["delta"]?.jsonObject ?: continue
                             when (delta["type"]?.jsonPrimitive?.contentOrNullSafe()) {
                                 "text" -> delta["text"]?.jsonPrimitive?.contentOrNullSafe()?.let { t ->
-                                    if (t.isNotEmpty()) { textBuf.append(t); emit(LlmStreamEvent.TextDelta(t)) }
+                                    if (t.isNotEmpty()) {
+                                        textBuf.append(t); emit(LlmStreamEvent.TextDelta(t))
+                                    }
                                 }
+
                                 "thought_summary" -> delta["text"]?.jsonPrimitive?.contentOrNullSafe()?.let { t ->
                                     if (t.isNotEmpty()) {
                                         if (reasoningBuf.isEmpty()) emit(LlmStreamEvent.ReasoningDelta(""))
                                         reasoningBuf.append(t); emit(LlmStreamEvent.ReasoningDelta(t))
                                     }
                                 }
+
                                 "thought_signature" -> delta["signature"]?.jsonPrimitive?.contentOrNullSafe()?.let { sig ->
                                     if (sig.isNotEmpty()) lastThoughtSignature = sig
                                 }
+
                                 "arguments" -> {
                                     val pc = pendingCalls[stepIndex]
                                     if (pc != null) {

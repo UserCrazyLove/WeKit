@@ -48,7 +48,6 @@ import dev.ujhhgtg.wekit.features.api.net.WePacketHelper
 import dev.ujhhgtg.wekit.features.api.ui.WeCurrentConversationApi
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
-import dev.ujhhgtg.wekit.features.items.chat.ChatInputBarEnhancements.ttsVoice
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.Button
@@ -461,15 +460,17 @@ private fun selectAndSendVoice(context: Context, currentConv: String) {
             }
         }
         // android couldn't distinguish AMR-extension SILK files, so we just use amr here
-        importLauncher.launch(arrayOf(
-            "audio/mpeg",
-            "audio/amr",
-            "audio/x-wav",
-            "audio/wav",
-            "audio/mp4",
-            "audio/x-m4a",
-            "application/octet-stream"
-        ))
+        importLauncher.launch(
+            arrayOf(
+                "audio/mpeg",
+                "audio/amr",
+                "audio/x-wav",
+                "audio/wav",
+                "audio/mp4",
+                "audio/x-m4a",
+                "application/octet-stream"
+            )
+        )
     }
 }
 

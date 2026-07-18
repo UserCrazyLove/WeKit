@@ -2,9 +2,10 @@ package dev.ujhhgtg.wekit.features.items.scripting_js
 
 import android.os.Handler
 import android.os.Looper
-import dev.ujhhgtg.reflekt.utils.createInstance
-import dev.ujhhgtg.reflekt.utils.toClass
 import de.robv.android.xposed.XC_MethodHook
+import dev.ujhhgtg.reflekt.utils.createInstance
+import dev.ujhhgtg.reflekt.utils.makeAccessible
+import dev.ujhhgtg.reflekt.utils.toClass
 import dev.ujhhgtg.wekit.features.api.core.WeApi
 import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.features.api.net.WePacketHelper
@@ -15,9 +16,8 @@ import dev.ujhhgtg.wekit.utils.fs.KnownPaths
 import dev.ujhhgtg.wekit.utils.fs.createDirsSafe
 import dev.ujhhgtg.wekit.utils.hookAfterDirectly
 import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
-import dev.ujhhgtg.wekit.utils.reflection.asMethod
 import dev.ujhhgtg.wekit.utils.reflection.DexKit
-import dev.ujhhgtg.reflekt.utils.makeAccessible
+import dev.ujhhgtg.wekit.utils.reflection.asMethod
 import dev.ujhhgtg.wekit.utils.serialization.DefaultJson
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -45,8 +45,8 @@ import org.mozilla.javascript.NativeObject
 import org.mozilla.javascript.Scriptable
 import org.mozilla.javascript.ScriptableObject
 import org.mozilla.javascript.Undefined
-import java.lang.reflect.Field
 import java.lang.reflect.Constructor
+import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.file.Path
@@ -1805,10 +1805,13 @@ object JsApiExposer {
                 val jsArgs = args.getOrNull(0) as? NativeArray ?: return Undefined.instance
                 val javaArgs = Array(constructor.parameterTypes.size) { i ->
                     if (i < jsArgs.length.toInt()) {
-                        try { Context.jsToJava(jsArgs[i], constructor.parameterTypes[i]) }
-                        catch (_: Exception) { jsArgs[i] }
+                        try {
+                            Context.jsToJava(jsArgs[i], constructor.parameterTypes[i])
+                        } catch (_: Exception) {
+                            jsArgs[i]
+                        }
                     } else null
-                    }
+                }
                 return try {
                     val instance = constructor.makeAccessible().newInstance(*javaArgs)
                     Context.javaToJS(instance, scope, cx) ?: Undefined.instance

@@ -1,8 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.moments
 
-import android.app.Activity
 import android.content.ContentValues
-import android.view.View
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
@@ -15,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -28,19 +27,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.tencent.mm.plugin.sns.ui.SnsUserUI
-import com.tencent.mm.plugin.sns.ui.improve.ImproveSnsTimelineUI
-import com.tencent.mm.view.recyclerview.WxRecyclerView
-import dev.ujhhgtg.reflekt.reflekt
-import dev.ujhhgtg.reflekt.utils.isSubclassOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
-import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
-import dev.ujhhgtg.wekit.dexkit.dsl.dexField
 import dev.ujhhgtg.wekit.features.api.core.WeApi
 import dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.features.api.core.WeDatabaseListenerApi
 import dev.ujhhgtg.wekit.features.api.ui.WeMomentsApi
-import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
@@ -48,13 +38,9 @@ import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.ContactsSelector
 import dev.ujhhgtg.wekit.ui.content.DefaultColumn
 import dev.ujhhgtg.wekit.ui.content.TextButton
-import dev.ujhhgtg.wekit.ui.utils.findViewWhich
-import dev.ujhhgtg.wekit.ui.utils.rootView
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
-import java.util.Collections
-import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
 
@@ -63,12 +49,12 @@ import kotlin.concurrent.thread
     categories = ["朋友圈"],
     description = "浏览朋友圈时自动点赞"
 )
-object AutoLikeMoments : ClickableFeature(),
-    IResolveDex,
+object AutoLikeMoments : AutoMomentsBase(),
     WeDatabaseListenerApi.IInsertListener,
-    WeDatabaseListenerApi.IUpdateListener {
+    WeDatabaseListenerApi.IUpdateListener,
+    AutoRefresh.IRefreshListener {
 
-    private const val TAG = "AutoLikeMoments"
+    override val TAG = "AutoLikeMoments"
 
     private const val MODE_WHEN_SEEN = 0
     private const val MODE_ALL_LOADED = 1
@@ -79,17 +65,14 @@ object AutoLikeMoments : ClickableFeature(),
 
     private val handledSnsIds = ConcurrentHashMap.newKeySet<String>()
     private val lastAttemptAt = ConcurrentHashMap<String, Long>()
-    private val attachedRoots = Collections.newSetFromMap(WeakHashMap<ViewGroup, Boolean>())
     private val actionLock = Any()
 
     @Volatile
     private var lastActionSentAt = 0L
 
-    @Volatile
-    private var timelineHooksInstalled = false
-
     override fun onEnable() {
         WeDatabaseListenerApi.addListener(this)
+        AutoRefresh.addListener(this)
 
         installTimelineHooks()
 
@@ -100,6 +83,14 @@ object AutoLikeMoments : ClickableFeature(),
 
     override fun onDisable() {
         WeDatabaseListenerApi.removeListener(this)
+        AutoRefresh.removeListener(this)
+    }
+
+    /** Called by [AutoRefresh] on every scheduled refresh cycle. */
+    override fun onRefresh() {
+        if (currentMode == MODE_ALL_LOADED) {
+            scanCachedTargetMoments()
+        }
     }
 
     override fun onClick(context: ComponentActivity) {
@@ -150,8 +141,8 @@ object AutoLikeMoments : ClickableFeature(),
 
                         Text(
                             text = "操作类型",
-                            style = androidx.compose.material3.MaterialTheme.typography.labelLarge,
-                            color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                         )
                         Column(Modifier.selectableGroup()) {
@@ -173,8 +164,8 @@ object AutoLikeMoments : ClickableFeature(),
 
                         Text(
                             text = "运行机制",
-                            style = androidx.compose.material3.MaterialTheme.typography.labelLarge,
-                            color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                         )
                         Column(Modifier.selectableGroup()) {
@@ -186,7 +177,7 @@ object AutoLikeMoments : ClickableFeature(),
                             )
                             ModeRow(
                                 title = "本地缓存全量处理",
-                                summary = "自动扫描本地已缓存和后续收到的所有目标朋友圈",
+                                summary = "自动扫描本地已缓存和后续收到的所有目标朋友圈\n需启用「朋友圈/自动刷新」",
                                 checked = mode == MODE_ALL_LOADED,
                                 onClick = { mode = MODE_ALL_LOADED }
                             )
@@ -239,55 +230,7 @@ object AutoLikeMoments : ClickableFeature(),
         processSnsInfoValues(table, values)
     }
 
-    private fun installTimelineHooks() {
-        if (timelineHooksInstalled) return
-        timelineHooksInstalled = true
-        listOf(
-            ImproveSnsTimelineUI::class.java,
-            SnsUserUI::class.java
-        ).forEach { clazz ->
-            clazz.reflekt()
-                .firstMethod {
-                    name = "onCreate"
-                }
-                .hookAfter {
-                    scheduleAttach(thisObject as Activity)
-                }
-            clazz.reflekt()
-                .firstMethod {
-                    name = "onResume"
-                }
-                .hookAfter {
-                    scheduleAttach(thisObject as Activity)
-                }
-        }
-    }
-
-    private fun scheduleAttach(activity: Activity) {
-        val root = activity.rootView
-        intArrayOf(0, 200, 800, 2_000).forEach { delay ->
-            root.postDelayed({
-                runCatching { attachToTimelineList(root) }
-                    .onFailure { WeLogger.w(TAG, "failed to attach Moments auto-like list observer", it) }
-            }, delay.toLong())
-        }
-    }
-
-    private fun attachToTimelineList(root: ViewGroup) {
-        val list = root.findViewWhich<ViewGroup> { it is WxRecyclerView } ?: return
-        synchronized(attachedRoots) {
-            if (!attachedRoots.add(root)) return
-        }
-        list.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-            processVisibleItems(list)
-        }
-        list.viewTreeObserver.addOnGlobalLayoutListener {
-            processVisibleItems(list)
-        }
-        processVisibleItems(list)
-    }
-
-    private fun processVisibleItems(list: ViewGroup) {
+    override fun processVisibleItems(list: ViewGroup) {
         // In whitelist mode, bail if the list is empty. In blacklist mode, an empty blacklist means
         // "process everyone" so we must not bail.
         if (momentsUseWhitelist && momentsWhitelist.isEmpty()) return
@@ -328,9 +271,7 @@ object AutoLikeMoments : ClickableFeature(),
             val snsIds = runCatching {
                 queryCachedTargetSnsIds()
             }.onFailure {
-                if (it !is UninitializedPropertyAccessException) {
-                    WeLogger.w(TAG, "failed to query cached target moments", it)
-                }
+                WeLogger.w(TAG, "failed to query cached target moments", it)
             }.getOrDefault(emptyList())
 
             WeLogger.d(TAG, "scanCachedTargetMoments: found ${snsIds.size} cached moments")
@@ -346,6 +287,8 @@ object AutoLikeMoments : ClickableFeature(),
     }
 
     private fun queryCachedTargetSnsIds(): List<Long> {
+        if (!WeDatabaseApi.isReady) return emptyList()
+
         val likePredicate = if (currentAction == ACTION_UNLIKE) {
             "IFNULL(likeFlag, 0) != 0"
         } else {
@@ -408,7 +351,6 @@ object AutoLikeMoments : ClickableFeature(),
             return
         }
 
-        // Check if the moments has been intercepted by AntiMomentsDelete
         if (isIntercepted(snsInfo)) {
             WeLogger.d(TAG, "processSnsInfo: skipping intercepted moments for owner=$owner")
             return
@@ -470,12 +412,6 @@ object AutoLikeMoments : ClickableFeature(),
         }
     }
 
-    private fun isIntercepted(snsInfo: Any): Boolean {
-        // Check if the moments content contains the interception marker
-        val content = WeMomentsApi.getContentText(snsInfo) ?: return false
-        return content.contains(AntiMomentsDelete.INTERCEPT_MARKER)
-    }
-
     private fun processSnsInfoAsync(snsInfo: Any, source: String) {
         thread(name = "AutoLikeMomentThread") {
             processSnsInfo(snsInfo, source)
@@ -497,46 +433,6 @@ object AutoLikeMoments : ClickableFeature(),
             result
         }
 
-    private fun locateSnsInfo(itemView: View): Any? {
-        extractImproveSnsInfo(itemView)?.let { return it }
-
-        val interactionView = itemView.findViewWhich<View> {
-            classImproveInteractionLayout.clazz.isInstance(it)
-        } ?: return null
-
-        return extractImproveSnsInfo(interactionView)
-            ?: fieldInteractionSnsInfo.field.get(interactionView)
-    }
-
-    private fun extractImproveSnsInfo(receiver: Any): Any? {
-        if (classImproveSnsInfo.clazz.isInstance(receiver)) return receiver
-
-        receiver.reflekt()
-            .firstMethodOrNull { parameters(); superclass(); returnType { it isSubclassOf classImproveSnsInfo.clazz } }
-            ?.invoke()?.let { return it }
-
-        receiver.reflekt().firstMethodOrNull {
-            name = "getImproveListItem"
-            parameters()
-            superclass()
-        }?.invoke()?.let { listItem ->
-            listItem.reflekt()
-                .firstMethodOrNull { parameters(); superclass(); returnType { it isSubclassOf classImproveSnsInfo.clazz } }
-                ?.invoke()?.let { return it }
-            listItem.reflekt()
-                .firstFieldOrNull { superclass(); type { it isSubclassOf classImproveSnsInfo.clazz } }
-                ?.get()?.let { return it }
-        }
-
-        return receiver.reflekt()
-            .firstFieldOrNull { superclass(); type { it isSubclassOf classImproveSnsInfo.clazz } }
-            ?.get()
-    }
-
-    private var currentMode by WePrefs.prefOption("moments_auto_like_mode", MODE_WHEN_SEEN)
-    private var currentAction by WePrefs.prefOption("moments_auto_like_action", ACTION_LIKE)
-    private var actionDelayMs by WePrefs.prefOption("moments_auto_like_action_delay_ms", 0L)
-
     private fun actionLabel(action: Int): String =
         if (action == ACTION_UNLIKE) "unlike" else "like"
 
@@ -545,26 +441,13 @@ object AutoLikeMoments : ClickableFeature(),
         return if (momentsUseWhitelist) wxId in momentsWhitelist else wxId !in momentsBlacklist
     }
 
+    private var currentMode by WePrefs.prefOption("moments_auto_like_mode", MODE_WHEN_SEEN)
+    private var currentAction by WePrefs.prefOption("moments_auto_like_action", ACTION_LIKE)
+    private var actionDelayMs by WePrefs.prefOption("moments_auto_like_action_delay_ms", 0L)
+
     private var momentsUseWhitelist by WePrefs.prefOption("moments_use_whitelist", true)
     private var momentsWhitelist by WePrefs.prefOption("moments_whitelist", emptySet())
     private var momentsBlacklist by WePrefs.prefOption("moments_blacklist", emptySet())
-
-    private val classImproveSnsInfo by dexClass {
-        matcher {
-            usingEqStrings("ImproveInfo(name=")
-        }
-    }
-    private val classImproveInteractionLayout by dexClass {
-        matcher {
-            usingEqStrings("MicroMsg.Improve.InteractionLayout")
-        }
-    }
-    private val fieldInteractionSnsInfo by dexField {
-        matcher {
-            declaredClass(classImproveInteractionLayout.clazz)
-            type(classImproveSnsInfo.clazz)
-        }
-    }
 }
 
 @Composable

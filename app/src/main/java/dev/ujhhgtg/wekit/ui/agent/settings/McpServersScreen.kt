@@ -60,7 +60,9 @@ fun McpServersScreen(onBack: () -> Unit, onOpenServer: (serverId: String) -> Uni
         item {
             Button(
                 onClick = { showAdd.value = true },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = AGENT_CONTENT_BOTTOM_INSET),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = AGENT_CONTENT_BOTTOM_INSET),
             ) { Text("添加服务器") }
         }
     }
@@ -178,7 +180,13 @@ private fun AddMcpDialog(
                 onSelectedIndexChange = { transportIndex = it },
             )
             Spacer(Modifier.height(8.dp))
-            TextField(value = headers, onValueChange = { headers = it }, label = "自定义请求头 JSON（可选，如 {\"Authorization\":\"Bearer ...\"}）", useLabelAsPlaceholder = true, maxLines = 3)
+            TextField(
+                value = headers,
+                onValueChange = { headers = it },
+                label = "自定义请求头 JSON（可选，如 {\"Authorization\":\"Bearer ...\"}）",
+                useLabelAsPlaceholder = true,
+                maxLines = 3
+            )
             Spacer(Modifier.height(16.dp))
             Row(Modifier.fillMaxWidth()) {
                 TextButton(text = "取消", onClick = { show.value = false }, modifier = Modifier.weight(1f))

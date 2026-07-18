@@ -61,7 +61,9 @@ fun MemoryScreen(onBack: () -> Unit) {
             }
         }
 
-        if (!loaded) { item { EmptyHint("加载中…") }; return@AgentSettingsScaffold }
+        if (!loaded) {
+            item { EmptyHint("加载中…") }; return@AgentSettingsScaffold
+        }
 
         item { SmallTitle("记忆索引（MEMORY.md）") }
         val idx = index
@@ -75,6 +77,7 @@ fun MemoryScreen(onBack: () -> Unit) {
                     )
                 }
             }
+
             idx.entries.isEmpty() -> item { EmptyHint("记忆索引为空。AI 会在需要时自行写入记忆。") }
             else -> item {
                 Card(Modifier.padding(bottom = AGENT_CONTENT_BOTTOM_INSET)) {

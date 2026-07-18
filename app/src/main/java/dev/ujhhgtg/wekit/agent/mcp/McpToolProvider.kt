@@ -43,10 +43,12 @@ class McpToolProvider(
 
     override val kind: ProviderKind = ProviderKind.MCP
 
-    @Volatile var state: McpConnectionState = McpConnectionState.DISCONNECTED
+    @Volatile
+    var state: McpConnectionState = McpConnectionState.DISCONNECTED
         private set
 
-    @Volatile var lastError: String? = null
+    @Volatile
+    var lastError: String? = null
         private set
 
     override val isAvailable: Boolean get() = state == McpConnectionState.CONNECTED
@@ -55,7 +57,8 @@ class McpToolProvider(
     private var client: Client? = null
 
     // Cached tools/list, refreshed on connect and on manual refresh.
-    @Volatile private var cachedTools: List<ProviderTool> = emptyList()
+    @Volatile
+    private var cachedTools: List<ProviderTool> = emptyList()
 
     override fun listTools(): List<ProviderTool> = cachedTools
 
@@ -73,6 +76,7 @@ class McpToolProvider(
             val t = when (transport) {
                 McpTransport.STREAMABLE_HTTP ->
                     StreamableHttpClientTransport(httpClient, endpointUrl, requestBuilder = requestBuilder())
+
                 McpTransport.SSE ->
                     SseClientTransport(httpClient, endpointUrl, requestBuilder = requestBuilder())
             }

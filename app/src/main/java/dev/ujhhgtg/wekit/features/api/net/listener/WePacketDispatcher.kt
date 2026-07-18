@@ -84,11 +84,9 @@ object WePacketDispatcher : ApiFeature(), IResolveDex {
                             reqPbObj.reflekt().invokeMethod("parseFrom", tampered)
                             WeLogger.i(TAG, "tampered request: $uri")
                         }
-                    }
-                    catch (_: NoSuchElementException) {
+                    } catch (_: NoSuchElementException) {
                         // ignored; toByteArray might not exist since a might be Integer
-                    }
-                    catch (e: Exception) {
+                    } catch (e: Exception) {
                         WeLogger.e(TAG, "failed to tamper request", e)
                     }
 

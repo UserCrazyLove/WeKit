@@ -28,8 +28,8 @@ import dev.ujhhgtg.wekit.features.api.core.WeContactLabelApi
 import dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.features.api.core.models.WeContact
 import dev.ujhhgtg.wekit.features.api.net.WePacketHelper
-import dev.ujhhgtg.wekit.features.api.net.models.protobuf.BeforeTransferProto
 import dev.ujhhgtg.wekit.features.api.net.models.protobuf.BeforeTransferReqProto
+import dev.ujhhgtg.wekit.features.api.net.models.protobuf.BeforeTransferRespProto
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
@@ -56,49 +56,38 @@ object DetectDeletedFriends : ClickableFeature() {
 
     private const val TAG = "DetectDeletedFriends"
 
-    private enum class AbnormalFriendStatus(val displayName: String) {
-        ThatAccountBanned("对方账号异常"),
-        ThatBlockedThis("被拉黑"),
-        ThatDeletedThis("被删除")
-    }
-
-    private data class AbnormalFriend(
-        val contact: WeContact,
-        val status: AbnormalFriendStatus
-    )
-
     private sealed class DialogPhase {
         data object Idle : DialogPhase()
         data class Scanning(
             val completed: MutableIntState,
             val total: Int,
-            val abnormalFriends: MutableList<AbnormalFriend> = mutableListOf()
+            val abnormalFriends: MutableList<WeContact> = mutableListOf()
         ) : DialogPhase()
 
-        data class Done(val friends: List<AbnormalFriend>) : DialogPhase()
+        data class Done(val friends: List<WeContact>) : DialogPhase()
         data class SelectLabel(
-            val friends: List<AbnormalFriend>,
+            val friends: List<WeContact>,
             val suggestedLabelName: String
         ) : DialogPhase()
 
         data class Marking(
-            val friends: List<AbnormalFriend>,
+            val friends: List<WeContact>,
             val labelName: String,
             val completed: MutableIntState,
             val total: Int
         ) : DialogPhase()
 
         data class ConfirmDelete(
-            val allFriends: List<AbnormalFriend>,
-            val targets: List<AbnormalFriend>
+            val allFriends: List<WeContact>,
+            val targets: List<WeContact>
         ) : DialogPhase()
 
         data class Deleting(
-            val allFriends: List<AbnormalFriend>,
-            val targets: List<AbnormalFriend>,
+            val allFriends: List<WeContact>,
+            val targets: List<WeContact>,
             val completed: MutableIntState,
             val total: Int,
-            val failed: MutableList<AbnormalFriend> = mutableListOf()
+            val failed: MutableList<WeContact> = mutableListOf()
         ) : DialogPhase()
     }
 
@@ -129,16 +118,15 @@ object DetectDeletedFriends : ClickableFeature() {
                             ) {
                                 onSuccess { bytes ->
                                     val realName = bytes
-                                        ?.let { BeforeTransferProto.decode(it) }
+                                        ?.let { BeforeTransferRespProto.decode(it) }
                                         ?.maskedRealName
                                     WeLogger.d(TAG, "realName=$realName")
                                     if (realName == null) {
                                         synchronized(abnormalFriends) {
-                                            abnormalFriends += AbnormalFriend(
-                                                contact = friend,
-                                                // TODO: figure out status, might have to perform another request
-                                                status = AbnormalFriendStatus.ThatDeletedThis,
-                                            )
+                                            // TODO: figure out status, might have to perform another request
+                                            //       update: seems that wechat modified their server-side logic
+                                            //       now it is impossible to tell the difference
+                                            abnormalFriends += friend
                                         }
                                     }
                                     scanningPhase.completed.intValue++
@@ -188,10 +176,10 @@ object DetectDeletedFriends : ClickableFeature() {
                             }
 
                             // additive: keep existing labels and append the target one
-                            val existing = WeContactLabelApi.getLabelNamesForContact(friend.contact.wxId)
+                            val existing = WeContactLabelApi.getLabelNamesForContact(friend.wxId)
                             if (markingPhase.labelName !in existing) {
                                 WeContactLabelApi.modifyLabel(
-                                    friend.contact.wxId,
+                                    friend.wxId,
                                     existing + markingPhase.labelName
                                 )
                             }
@@ -217,9 +205,9 @@ object DetectDeletedFriends : ClickableFeature() {
                                 break
                             }
 
-                            val ok = WeContactApi.deleteContact(friend.contact.wxId)
+                            val ok = WeContactApi.deleteContact(friend.wxId)
                             if (ok) {
-                                deleted += friend.contact.wxId
+                                deleted += friend.wxId
                             } else {
                                 synchronized(deletingPhase.failed) { deletingPhase.failed += friend }
                             }
@@ -230,7 +218,7 @@ object DetectDeletedFriends : ClickableFeature() {
 
                         if (phase is DialogPhase.Deleting) {
                             // drop successfully deleted friends from the result list
-                            val remaining = deletingPhase.allFriends.filter { it.contact.wxId !in deleted }
+                            val remaining = deletingPhase.allFriends.filter { it.wxId !in deleted }
                             val failedCount = synchronized(deletingPhase.failed) { deletingPhase.failed.size }
                             phase = DialogPhase.Done(remaining)
                             dialog.setCancelable(true)
@@ -265,7 +253,7 @@ object DetectDeletedFriends : ClickableFeature() {
                                 items(abnormalFriends) { friend ->
                                     ListItem(
                                         modifier = Modifier.clickable {
-                                            WeApi.openContact(context, friend.contact.wxId, WeApi.OpenContactDestination.HOMEPAGE)
+                                            WeApi.openContact(context, friend.wxId, WeApi.OpenContactDestination.HOMEPAGE)
                                         },
                                         trailingContent = {
                                             IconButton(onClick = {
@@ -283,14 +271,14 @@ object DetectDeletedFriends : ClickableFeature() {
                                         },
                                         supportingContent = {
                                             Column {
-                                                Text("状态: ${friend.status.displayName}")
-                                                Text("昵称: ${friend.contact.nickname}")
-                                                Text("备注: ${friend.contact.remarkName}")
-                                                Text("微信 ID: ${friend.contact.wxId}")
-                                                Text("微信号: ${friend.contact.customWxId}")
+                                                Text("状态: 异常")
+                                                Text("昵称: ${friend.nickname}")
+                                                Text("备注: ${friend.remarkName}")
+                                                Text("微信 ID: ${friend.wxId}")
+                                                Text("微信号: ${friend.customWxId}")
                                             }
                                         },
-                                        headlineContent = { Text(friend.contact.displayName) },
+                                        headlineContent = { Text(friend.displayName) },
                                     )
                                 }
                             }
@@ -463,11 +451,11 @@ object DetectDeletedFriends : ClickableFeature() {
                             Button(onClick = {
                                 val text = abnormalFriends.joinToString("\n\n") { friend ->
                                     buildString {
-                                        appendLine("昵称: ${friend.contact.nickname}")
-                                        appendLine("备注: ${friend.contact.remarkName}")
-                                        appendLine("微信 ID: ${friend.contact.wxId}")
-                                        appendLine("微信号: ${friend.contact.customWxId}")
-                                        appendLine("状态: ${friend.status.displayName}")
+                                        appendLine("状态: 异常")
+                                        appendLine("昵称: ${friend.nickname}")
+                                        appendLine("备注: ${friend.remarkName}")
+                                        appendLine("微信 ID: ${friend.wxId}")
+                                        appendLine("微信号: ${friend.customWxId}")
                                     }
                                 }
                                 copyToClipboard(context, text)

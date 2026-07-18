@@ -125,13 +125,13 @@ private fun ServiceKeyCard(
                 label = { androidx.compose.material3.Text("API Key") },
                 singleLine = true,
                 visualTransformation = if (showKey) VisualTransformation.None
-                                       else PasswordVisualTransformation(),
+                else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
                     IconButton(onClick = { showKey = !showKey }) {
                         Icon(
                             imageVector = if (showKey) MaterialSymbols.Outlined.Visibility_off
-                                          else MaterialSymbols.Outlined.Visibility,
+                            else MaterialSymbols.Outlined.Visibility,
                             contentDescription = if (showKey) "隐藏" else "显示",
                         )
                     }

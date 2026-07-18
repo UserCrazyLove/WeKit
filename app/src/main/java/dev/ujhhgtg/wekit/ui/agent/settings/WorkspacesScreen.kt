@@ -21,7 +21,6 @@ import dev.ujhhgtg.wekit.agent.data.entity.WorkspaceEntity
 import dev.ujhhgtg.wekit.agent.workspace.WorkspaceStore
 import dev.ujhhgtg.wekit.utils.android.showToast
 import kotlinx.coroutines.launch
-import java.util.UUID
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -30,6 +29,7 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.window.WindowDialog
+import java.util.UUID
 
 /** Workspace directory management (§7). Each workspace's name doubles as its on-disk folder. No
  *  global switch — whether a workspace is used is per-session state. Tapping a row edits (renames). */
@@ -55,7 +55,9 @@ fun WorkspacesScreen(onBack: () -> Unit) {
         item {
             Button(
                 onClick = { showAdd.value = true },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = AGENT_CONTENT_BOTTOM_INSET),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = AGENT_CONTENT_BOTTOM_INSET),
             ) { Text("添加工作区") }
         }
     }

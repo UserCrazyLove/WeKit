@@ -33,14 +33,16 @@ object WeStartActivityApi : ApiFeature() {
         listOf(
             Activity::class.java,
             ContextWrapper::class.java
-        ).forEach { clazz -> clazz.declaredMethods.forEach {
-            if (it.name != "startActivity" && it.name != "startActivityForResult") {
-                return@forEach
+        ).forEach { clazz ->
+            clazz.declaredMethods.forEach {
+                if (it.name != "startActivity" && it.name != "startActivityForResult") {
+                    return@forEach
+                }
+                it.hookBefore {
+                    handleStartActivity(this)
+                }
             }
-            it.hookBefore {
-                handleStartActivity(this)
-            }
-        } }
+        }
     }
 
     private fun handleStartActivity(param: XC_MethodHook.MethodHookParam) {

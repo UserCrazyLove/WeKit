@@ -45,14 +45,14 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-dump-tree",
         description = "Dump the current WeChat window's view hierarchy as an indented text tree. " +
-            "Each node is stored as a handle (#N) with its class, resource-id, on-screen bounds " +
-            "(screen pixels), visibility, interaction flags, and text / content-description. Use " +
-            "the returned handles with other ui-* or jvm-* tools. " +
-            "`windowRef` (optional) is a handle to an Activity/Window/View to use instead of the " +
-            "current top activity. " +
-            "`maxDepth` limits recursion depth (0 = unlimited, default 0). " +
-            "`onlyInteractive` = true shows only clickable/focusable/editable views. " +
-            "`includeInvisible` = true includes INVISIBLE/GONE nodes.",
+                "Each node is stored as a handle (#N) with its class, resource-id, on-screen bounds " +
+                "(screen pixels), visibility, interaction flags, and text / content-description. Use " +
+                "the returned handles with other ui-* or jvm-* tools. " +
+                "`windowRef` (optional) is a handle to an Activity/Window/View to use instead of the " +
+                "current top activity. " +
+                "`maxDepth` limits recursion depth (0 = unlimited, default 0). " +
+                "`onlyInteractive` = true shows only clickable/focusable/editable views. " +
+                "`includeInvisible` = true includes INVISIBLE/GONE nodes.",
         sideEffect = false,
         group = BUILTIN_UI,
     )
@@ -76,11 +76,11 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-find-views",
         description = "Search the view tree for nodes matching all given filters " +
-            "(substring match, case-insensitive). All filters are optional — if none given, " +
-            "every view is listed. Returns handles and brief summaries. " +
-            "`text` matches a view's text or content-description. " +
-            "`id` matches the resource-id entry name. " +
-            "`className` matches the simple class name.",
+                "(substring match, case-insensitive). All filters are optional — if none given, " +
+                "every view is listed. Returns handles and brief summaries. " +
+                "`text` matches a view's text or content-description. " +
+                "`id` matches the resource-id entry name. " +
+                "`className` matches the simple class name.",
         sideEffect = false,
         group = BUILTIN_UI,
     )
@@ -106,8 +106,8 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-describe-view",
         description = "Return a full attribute description (class, id, bounds, visibility, flags, " +
-            "text, tag, child-count) for a single view. `ref` is a #N handle from ui-dump-tree or " +
-            "ui-find-views.",
+                "text, tag, child-count) for a single view. `ref` is a #N handle from ui-dump-tree or " +
+                "ui-find-views.",
         sideEffect = false,
         group = BUILTIN_UI,
     )
@@ -122,12 +122,12 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-screenshot",
         description = "Capture the current WeChat screen (or a view subtree) as a PNG image and " +
-            "inject it into the conversation so you can see it. " +
-            "Only works when the current session's model has 'supportsVision' enabled. " +
-            "`viewRef` (optional): a #N handle to capture just that view's subtree; " +
-            "null = whole window. " +
-            "`maxDimension` (optional): max width or height in pixels after downscaling (default 1024). " +
-            "Returns a short acknowledgement; the actual image is delivered as a separate message.",
+                "inject it into the conversation so you can see it. " +
+                "Only works when the current session's model has 'supportsVision' enabled. " +
+                "`viewRef` (optional): a #N handle to capture just that view's subtree; " +
+                "null = whole window. " +
+                "`maxDimension` (optional): max width or height in pixels after downscaling (default 1024). " +
+                "Returns a short acknowledgement; the actual image is delivered as a separate message.",
         sideEffect = false,   // read-only from WeChat's perspective; gated separately by visionToolsVisible
         group = BUILTIN_UI,
     )
@@ -157,7 +157,7 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-click-view",
         description = "Call View.performClick() on a view handle. Triggers click listeners just " +
-            "as a real finger tap would. `ref` is a #N handle from ui-dump-tree / ui-find-views.",
+                "as a real finger tap would. `ref` is a #N handle from ui-dump-tree / ui-find-views.",
         sideEffect = true,
         group = BUILTIN_UI,
     )
@@ -184,7 +184,7 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-set-text",
         description = "Set text on a TextView or EditText view handle. Replaces all existing " +
-            "content and moves the cursor to the end, triggering TextWatcher callbacks.",
+                "content and moves the cursor to the end, triggering TextWatcher callbacks.",
         sideEffect = true,
         group = BUILTIN_UI,
     )
@@ -199,7 +199,7 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-input-text",
         description = "Set text on whichever view currently has focus in the top activity " +
-            "(typically the chat input bar). Equivalent to ui-set-text on the focused view.",
+                "(typically the chat input bar). Equivalent to ui-set-text on the focused view.",
         sideEffect = true,
         group = BUILTIN_UI,
     )
@@ -221,8 +221,8 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-tap",
         description = "Synthesise a DOWN+UP tap at absolute screen coordinates (pixels). " +
-            "Use ui-dump-tree to discover bounds first. `windowRef` optionally scopes the " +
-            "dispatch to a specific window handle.",
+                "Use ui-dump-tree to discover bounds first. `windowRef` optionally scopes the " +
+                "dispatch to a specific window handle.",
         sideEffect = true,
         group = BUILTIN_UI,
     )
@@ -241,7 +241,7 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-multi-tap",
         description = "Tap the same screen coordinate multiple times (连点 / double-tap). " +
-            "`count` is the number of taps; `intervalMs` is the pause between taps (default 80ms).",
+                "`count` is the number of taps; `intervalMs` is the pause between taps (default 80ms).",
         sideEffect = true,
         group = BUILTIN_UI,
     )
@@ -263,7 +263,7 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-long-press",
         description = "Hold a press at screen coordinates for `durationMs` ms then release. " +
-            "Default duration is 600ms (threshold for long-press context menus).",
+                "Default duration is 600ms (threshold for long-press context menus).",
         sideEffect = true,
         group = BUILTIN_UI,
     )
@@ -284,8 +284,8 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-swipe",
         description = "Swipe from (x1, y1) to (x2, y2) over `durationMs` ms. Emits smooth " +
-            "MOVE events (`steps`, default ≈60fps) so velocity-based gestures work correctly. " +
-            "Use for scrolling lists, pulling drawers, or dismissing cards.",
+                "MOVE events (`steps`, default ≈60fps) so velocity-based gestures work correctly. " +
+                "Use for scrolling lists, pulling drawers, or dismissing cards.",
         sideEffect = true,
         group = BUILTIN_UI,
     )
@@ -299,7 +299,7 @@ object WeUiAutomationToolBindings {
         @AgentToolParam("Handle to target window; null = top activity") windowRef: String?,
     ): String = guard {
         val dur = (durationMs ?: 300L).coerceAtLeast(20L)
-        val n   = (steps ?: maxOf(10, (dur / 16).toInt())).coerceAtLeast(2)
+        val n = (steps ?: maxOf(10, (dur / 16).toInt())).coerceAtLeast(2)
         JvmValueBridge.onMain {
             val decor = UiAutomator.resolveDecor(windowRef)
             UiAutomator.swipe(decor, x1.toFloat(), y1.toFloat(), x2.toFloat(), y2.toFloat(), dur, n)
@@ -310,8 +310,8 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-touch-down",
         description = "Start a held touch gesture (ACTION_DOWN) at screen coordinates. " +
-            "Follow with ui-touch-move and ui-touch-up to compose multi-step gestures. " +
-            "Any previously-active gesture is cancelled first.",
+                "Follow with ui-touch-move and ui-touch-up to compose multi-step gestures. " +
+                "Any previously-active gesture is cancelled first.",
         sideEffect = true,
         group = BUILTIN_UI,
     )
@@ -330,7 +330,7 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-touch-move",
         description = "Move a held touch gesture to screen coordinates (ACTION_MOVE). " +
-            "Must follow ui-touch-down.",
+                "Must follow ui-touch-down.",
         sideEffect = true,
         group = BUILTIN_UI,
     )
@@ -344,7 +344,7 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-touch-up",
         description = "Release a held touch gesture (ACTION_UP) at screen coordinates. " +
-            "Must follow ui-touch-down. Coordinates may differ from the last move.",
+                "Must follow ui-touch-down. Coordinates may differ from the last move.",
         sideEffect = true,
         group = BUILTIN_UI,
     )
@@ -358,8 +358,8 @@ object WeUiAutomationToolBindings {
     @AgentTool(
         name = "ui-press-key",
         description = "Send a KEY_DOWN + KEY_UP event to the top WeChat activity. Common key " +
-            "codes: BACK=4, ENTER=66, DEL=67, HOME=3, VOLUME_UP=24, VOLUME_DOWN=25. Pass the " +
-            "integer key code from android.view.KeyEvent.",
+                "codes: BACK=4, ENTER=66, DEL=67, HOME=3, VOLUME_UP=24, VOLUME_DOWN=25. Pass the " +
+                "integer key code from android.view.KeyEvent.",
         sideEffect = true,
         group = BUILTIN_UI,
     )

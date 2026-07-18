@@ -9,6 +9,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.materialkolor.dynamicColorScheme
+import dev.ujhhgtg.wekit.ui.utils.theme.SeedResolver.customSeed
 
 /**
  * Single source of truth for turning [ThemeSettings] into a concrete accent seed and the derived

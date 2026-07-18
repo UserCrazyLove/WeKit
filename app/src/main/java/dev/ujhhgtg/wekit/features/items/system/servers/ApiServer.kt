@@ -442,7 +442,10 @@ object ApiServer : ClickableFeature() {
             inputSchema = ToolSchema(
                 properties = buildJsonObject {
                     addField("msg-svr-id", "Server ID (msgSvrId) of the file message to cache", "integer")
-                    addField("conv-id", "Conversation ID (wxId / talker) of the conversation the message belongs to; can be empty, if empty, the module tries to auto-detect the convId.")
+                    addField(
+                        "conv-id",
+                        "Conversation ID (wxId / talker) of the conversation the message belongs to; can be empty, if empty, the module tries to auto-detect the convId."
+                    )
                 },
                 required = listOf("conv-id", "msg-svr-id")
             )
@@ -460,7 +463,10 @@ object ApiServer : ClickableFeature() {
             inputSchema = ToolSchema(
                 properties = buildJsonObject {
                     addField("msg-svr-id", "Server ID (msgSvrId) of the file message to download", "integer")
-                    addField("conv-id", "Conversation ID (wxId / talker) of the conversation the message belongs to; can be empty, if empty, the module tries to auto-detect the convId.")
+                    addField(
+                        "conv-id",
+                        "Conversation ID (wxId / talker) of the conversation the message belongs to; can be empty, if empty, the module tries to auto-detect the convId."
+                    )
                 },
                 required = listOf("conv-id", "msg-svr-id")
             )

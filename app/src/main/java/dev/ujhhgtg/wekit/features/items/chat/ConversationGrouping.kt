@@ -23,6 +23,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -339,7 +340,7 @@ object ConversationGrouping : SwitchFeature(), IResolveDex {
         onDeleteGroup: (ChatGroup) -> Unit,
         onReorder: (List<String>) -> Unit,
         modifier: Modifier = Modifier,
-        containerColor: Color = if (isSystemInDarkTheme()) Color(0xFF191919) else Color(0xFFF7F7F7),
+        containerColor: Color = if (isSystemInDarkTheme()) Color(0xFF111111) else Color(0xFFEDEDED),
     ) {
         var menuForGroupId by remember { mutableStateOf<String?>(null) }
         // Sort (edit) mode: tabs jiggle in place and can be long-pressed to drag-reorder.
@@ -391,6 +392,20 @@ object ConversationGrouping : SwitchFeature(), IResolveDex {
                                 expanded = menuForGroupId == group.id,
                                 onDismissRequest = { menuForGroupId = null }
                             ) {
+                                DropdownMenuItem(
+                                    text = { Text("新建") },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = MaterialSymbols.Outlined.Add,
+                                            contentDescription = "新建分组",
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    },
+                                    onClick = {
+                                        menuForGroupId = null
+                                        onCreateGroup()
+                                    }
+                                )
                                 // The fixed "全部" tab can be reordered but never edited or deleted.
                                 if (!allTab) {
                                     DropdownMenuItem(
@@ -443,19 +458,6 @@ object ConversationGrouping : SwitchFeature(), IResolveDex {
                         }
                     }
 
-                    // Trailing "+" to create a new group.
-                    item(key = "__add__") {
-                        IconButton(
-                            onClick = onCreateGroup,
-                            colors = androidx.compose.material3.IconButtonDefaults.filledTonalIconButtonColors()
-                        ) {
-                            Icon(
-                                imageVector = MaterialSymbols.Outlined.Add,
-                                contentDescription = "新建分组",
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-                    }
                 }
             }
 
@@ -539,7 +541,7 @@ object ConversationGrouping : SwitchFeature(), IResolveDex {
                         onDragStart = { offset ->
                             // Hit-test the touch against the live layout to pick up the right tab.
                             val hit = listState.layoutInfo.visibleItemsInfo.firstOrNull {
-                                offset.x.toInt() in it.offset..(it.offset + it.size)
+                                offset.x.toInt() in it.offset..it.offset + it.size
                             }
                             if (hit != null) {
                                 draggingIndex = hit.index
@@ -577,7 +579,7 @@ object ConversationGrouping : SwitchFeature(), IResolveDex {
                             val center = (cur.offset + offsetForIndex(draggingIndex) + cur.size / 2f).toInt()
                             val target = info.firstOrNull { other ->
                                 other.index != draggingIndex &&
-                                        center in other.offset..(other.offset + other.size)
+                                        center in other.offset..other.offset + other.size
                             }
                             if (target != null) {
                                 onMove(draggingIndex, target.index)
@@ -587,7 +589,7 @@ object ConversationGrouping : SwitchFeature(), IResolveDex {
                     )
                 },
             // Leave room on the right for the overlaid ✓ button.
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            contentPadding = PaddingValues(
                 start = 12.dp, end = 56.dp, top = 8.dp, bottom = 8.dp
             ),
             horizontalArrangement = Arrangement.spacedBy(8.dp),

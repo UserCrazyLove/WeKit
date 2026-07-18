@@ -65,7 +65,11 @@ object WeAgentToolBindings {
         }
     }
 
-    @AgentTool(name = "lookup-contact-id", description = "Resolve a conversation id (wxid) from a display/remark name. Optionally match a member's group-specific name.", sideEffect = false)
+    @AgentTool(
+        name = "lookup-contact-id",
+        description = "Resolve a conversation id (wxid) from a display/remark name. Optionally match a member's group-specific name.",
+        sideEffect = false
+    )
     fun lookupContactId(
         @AgentToolParam("Display name or remark name of the target") displayName: String,
         @AgentToolParam("Optional group id (@chatroom) to match a group member's in-group name") groupId: String?,
@@ -95,39 +99,68 @@ object WeAgentToolBindings {
         if (list.isEmpty()) "No contacts for this label." else list.joinToString(", ")
     }
 
-    @AgentTool(name = "cache-image", description = "Cache an image message into WeChat's own storage by its server id (equivalent to tapping the image to download from CDN). Does NOT decode or copy it to Download/WeKit/. Returns the internal WeChat image path. May take a while if not cached yet.", sideEffect = false)
+    @AgentTool(
+        name = "cache-image",
+        description = "Cache an image message into WeChat's own storage by its server id (equivalent to tapping the image to download from CDN). Does NOT decode or copy it to Download/WeKit/. Returns the internal WeChat image path. May take a while if not cached yet.",
+        sideEffect = false
+    )
     fun cacheImage(
         @AgentToolParam("Server id (msgSvrId) of the image message to cache") msgSvrId: Long,
     ): String = WeChatService.cacheImage(msgSvrId).render { "path=$it" }
 
-    @AgentTool(name = "download-image", description = "Download the image of an image message by its server id: cache it from CDN if needed, then decode and save it to Download/WeKit/. Returns the saved local file path. May take a while if not cached yet.", sideEffect = false)
+    @AgentTool(
+        name = "download-image",
+        description = "Download the image of an image message by its server id: cache it from CDN if needed, then decode and save it to Download/WeKit/. Returns the saved local file path. May take a while if not cached yet.",
+        sideEffect = false
+    )
     fun downloadImage(
         @AgentToolParam("Server id (msgSvrId) of the image message to download") msgSvrId: Long,
     ): String = WeChatService.downloadImage(msgSvrId).render { "path=$it" }
 
-    @AgentTool(name = "download-sticker", description = "Decode the sticker/emoji of a sticker message by its server id, convert it to GIF and save it to Download/WeKit/. Returns the saved local file path.", sideEffect = false)
+    @AgentTool(
+        name = "download-sticker",
+        description = "Decode the sticker/emoji of a sticker message by its server id, convert it to GIF and save it to Download/WeKit/. Returns the saved local file path.",
+        sideEffect = false
+    )
     fun downloadSticker(
         @AgentToolParam("Server id (msgSvrId) of the sticker message to download") msgSvrId: Long,
     ): String = WeChatService.downloadSticker(msgSvrId).render { "path=$it" }
 
-    @AgentTool(name = "download-voice", description = "Decode the voice of a voice message by its server id (silk → mp3) and save it to Download/WeKit/. Returns the saved local mp3 file path.", sideEffect = false)
+    @AgentTool(
+        name = "download-voice",
+        description = "Decode the voice of a voice message by its server id (silk → mp3) and save it to Download/WeKit/. Returns the saved local mp3 file path.",
+        sideEffect = false
+    )
     fun downloadVoice(
         @AgentToolParam("Server id (msgSvrId) of the voice message to download") msgSvrId: Long,
     ): String = WeChatService.downloadVoice(msgSvrId).render { "path=$it" }
 
-    @AgentTool(name = "cache-file", description = "Cache a file message into WeChat's own storage by its server id (equivalent to tapping the file bubble to download). Does NOT copy it to Download/WeKit/. Returns the internal WeChat file path. May take a while for large files.", sideEffect = false)
+    @AgentTool(
+        name = "cache-file",
+        description = "Cache a file message into WeChat's own storage by its server id (equivalent to tapping the file bubble to download). Does NOT copy it to Download/WeKit/. Returns the internal WeChat file path. May take a while for large files.",
+        sideEffect = false
+    )
     fun cacheFile(
         @AgentToolParam("Server id (msgSvrId) of the file message to cache") msgSvrId: Long,
         @AgentToolParam("Conversation ID (wxId / talker) of the conversation the message belongs to; can be empty, if empty, the module tries to auto-detect the convId.") convId: String,
     ): String = WeChatService.cacheFile(msgSvrId, convId.ifEmpty { null }).render { "path=$it" }
 
-    @AgentTool(name = "download-file", description = "Download a file message by its server id: cache it into WeChat's storage if needed, then copy it to Download/WeKit/. Returns the saved local file path. May take a while for large files.", sideEffect = false)
+    @AgentTool(
+        name = "download-file",
+        description = "Download a file message by its server id: cache it into WeChat's storage if needed, then copy it to Download/WeKit/. Returns the saved local file path. May take a while for large files.",
+        sideEffect = false
+    )
     fun downloadFile(
         @AgentToolParam("Server id (msgSvrId) of the file message to download") msgSvrId: Long,
         @AgentToolParam("Conversation ID (wxId / talker) of the conversation the message belongs to; can be empty, if empty, the module tries to auto-detect the convId.") convId: String,
     ): String = WeChatService.downloadFile(msgSvrId, convId.ifEmpty { null }).render { "path=$it" }
 
-    @AgentTool(name = "query-database", description = "Run a read-only SQL SELECT against WeChat's decrypted database. Returns rows as JSON-ish text. Use with care.", sideEffect = false, group = AgentTool.BUILTIN_WECHAT_SQL)
+    @AgentTool(
+        name = "query-database",
+        description = "Run a read-only SQL SELECT against WeChat's decrypted database. Returns rows as JSON-ish text. Use with care.",
+        sideEffect = false,
+        group = AgentTool.BUILTIN_WECHAT_SQL
+    )
     fun queryDatabase(
         @AgentToolParam("A single SELECT statement") sql: String,
     ): String {
@@ -191,7 +224,11 @@ object WeAgentToolBindings {
         @AgentToolParam("Local message id to revoke") msgId: Long,
     ): String = WeChatService.revokeMessage(msgId).renderOk("Revoked.")
 
-    @AgentTool(name = "insert-system-message", description = "Insert a local-only system message into a conversation (not sent over network).", sideEffect = true)
+    @AgentTool(
+        name = "insert-system-message",
+        description = "Insert a local-only system message into a conversation (not sent over network).",
+        sideEffect = true
+    )
     fun insertSystemMessage(
         @AgentToolParam("Target conversation id") convId: String,
         @AgentToolParam("System message content") content: String,
@@ -258,7 +295,12 @@ object WeAgentToolBindings {
         @AgentToolParam("Scene code of the request") scene: Int,
     ): String = WeChatService.verifyFriend(userId, ticket, scene, null).renderOk("Verified.")
 
-    @AgentTool(name = "execute-database-statement", description = "Execute an arbitrary non-query SQL statement (INSERT/UPDATE/DELETE/DDL) against WeChat's database. Dangerous and irreversible.", sideEffect = true, group = AgentTool.BUILTIN_WECHAT_SQL)
+    @AgentTool(
+        name = "execute-database-statement",
+        description = "Execute an arbitrary non-query SQL statement (INSERT/UPDATE/DELETE/DDL) against WeChat's database. Dangerous and irreversible.",
+        sideEffect = true,
+        group = AgentTool.BUILTIN_WECHAT_SQL
+    )
     fun executeDatabaseStatement(
         @AgentToolParam("A single non-query SQL statement") sql: String,
     ): String {

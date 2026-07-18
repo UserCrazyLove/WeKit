@@ -71,6 +71,7 @@ object NotificationsEvolved : SwitchFeature(), IResolveDex {
     private val lastGroupChatSender = LruCache<String, String>()
 
     private data class HistoryEntry(val senderName: String, val text: String, val timestamp: Long)
+
     // Per-conversation message history rebuilt into MessagingStyle on each notification update.
     // Cleared when the user replies or marks as read; bounded to avoid unbounded growth.
     private val messageHistory = LinkedHashMap<String, ArrayDeque<HistoryEntry>>()

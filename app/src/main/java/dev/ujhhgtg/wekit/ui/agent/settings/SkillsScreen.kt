@@ -79,7 +79,9 @@ fun SkillsScreen(onBack: () -> Unit) {
         item {
             Button(
                 onClick = { editing = null; showEditor = true },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = AGENT_CONTENT_BOTTOM_INSET),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = AGENT_CONTENT_BOTTOM_INSET),
             ) { Text("添加技能") }
         }
     }
@@ -120,7 +122,13 @@ private fun SkillEditorDialog(
         Column {
             TextField(value = name, onValueChange = { name = it }, label = "技能名称（同时作为目录名）", useLabelAsPlaceholder = true, singleLine = true)
             Spacer(Modifier.height(8.dp))
-            TextField(value = description, onValueChange = { description = it }, label = "简介（决定 LLM 何时加载此技能）", useLabelAsPlaceholder = true, maxLines = 3)
+            TextField(
+                value = description,
+                onValueChange = { description = it },
+                label = "简介（决定 LLM 何时加载此技能）",
+                useLabelAsPlaceholder = true,
+                maxLines = 3
+            )
             Spacer(Modifier.height(8.dp))
             TextField(value = body, onValueChange = { body = it }, label = "技能正文（SKILL.md 指令内容）", useLabelAsPlaceholder = true, maxLines = 12)
             Spacer(Modifier.height(16.dp))

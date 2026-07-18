@@ -101,7 +101,7 @@ object RepostMoments : SwitchFeature(), WeMomentsContextMenuApi.IMenuItemsProvid
                     }
 
                     WeLogger.i(TAG, "forward video to editor: video=${video.videoPath}, thumb=${video.thumbPath}")
-                    val albumVideoPath = WeMomentsApi.saveVideoToAlbumPath(activity, video.videoPath)
+                    val albumVideoPath = WeMomentsApi.saveVideo(activity, video.videoPath)
                     if (albumVideoPath == null) {
                         showToastSuspend(activity, "视频保存到相册失败!")
                         return@launch

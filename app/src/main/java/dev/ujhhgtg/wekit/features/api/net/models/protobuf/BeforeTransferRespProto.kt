@@ -5,16 +5,15 @@ package dev.ujhhgtg.wekit.features.api.net.models.protobuf
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.protobuf.ProtoNumber
 
 @Serializable
-data class BeforeTransferProto(
+data class BeforeTransferRespProto(
     @ProtoNumber(4) val maskedRealName: String? = null,
     @ProtoNumber(5) val key: String? = null
 ) {
     companion object {
-        fun decode(bytes: ByteArray): BeforeTransferProto = WeProto.decode(bytes)
+        fun decode(bytes: ByteArray): BeforeTransferRespProto = WeProto.decode(bytes)
     }
 }
 
